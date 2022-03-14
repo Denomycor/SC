@@ -1,16 +1,10 @@
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.Scanner;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+ 
 
 public class Main {
-
-    public static class Ref<T> { 
-        public T object = null;
-    }
 
     public static String[] getArgs(String[] args, Scanner in){
         if(args.length != 3 && args.length != 2){
@@ -30,24 +24,6 @@ public class Main {
         return res;
     }
 
-    public static void openConnection(String address, Ref<Socket> socket, Ref<ObjectInputStream> in, Ref<ObjectOutputStream> out) throws UnknownHostException, IOException{
-        Integer port = 45678;
-        
-        if(address.contains(":")){
-            String[] split = address.split(":");
-            address = split[0];
-            port = Integer.parseInt(split[1]);
-        }
-
-        System.out.println(address);
-        System.out.println(port);
-
-        socket.object = new Socket(address, port);
-        in.object = new ObjectInputStream(socket.object.getInputStream());
-        out.object = new ObjectOutputStream(socket.object.getOutputStream());
-
-    }
-
     public static void main(String[] args) throws UnknownHostException, IOException {
 
         Scanner reader = new Scanner(System.in);
@@ -57,14 +33,9 @@ public class Main {
         String username = params[1];
         String password = params[2];
         
-        Ref<Socket> socket = new Ref<>();
-        Ref<ObjectInputStream> in = new Ref<>();
-        Ref<ObjectOutputStream> out = new Ref<>();
-        
-        openConnection(address, socket, in, out);
+        Connection connection = new Connection();
+        connection.openConnection(address);
     
         reader.close();
     }
-
-
 }
