@@ -1,9 +1,5 @@
 package server;
 
-import java.io.IOException;
-
-import network.Connection;
-
 public class Main {
 	
 	public static void main(String[] args){
@@ -16,13 +12,12 @@ public class Main {
 			}
         }
         
-        try ( ServerConnection server = new ServerConnection(port) ) {
-        	while(true) {
-        		Connection con = server.listen();
-        	}
+        try ( Server server = new Server(port) ) {
+        	server.mainLoop();
         	
-        } catch (IOException e) {
-			System.out.println("Error opening or closing sockets");
+        } catch (Exception e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
     }
 

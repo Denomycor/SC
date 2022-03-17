@@ -2,6 +2,7 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import exceptions.TrokosException;
 import network.Connection;
 
 
@@ -12,9 +13,12 @@ public class ServerConnection implements AutoCloseable{
     	svSocket = new ServerSocket(port);
     }
 
-    public Connection listen() throws IOException{
-        Connection connection = new Connection(svSocket.accept());
-        return connection;
+    public Connection listen() throws TrokosException {
+        try {
+        	return new Connection(svSocket.accept());
+        } catch (IOException e) {
+			throw new TrokosException("Cannot accept connection");
+		}
     }
 
 	@Override

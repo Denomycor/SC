@@ -20,4 +20,16 @@ public class Server implements AutoCloseable {
 	public void close() throws Exception {
 		serverConnection.close();
 	}
+
+	public void mainLoop() {
+		while (true) {
+			try {
+				// TODO: open new thread with connection to process request 
+				serverConnection.listen();
+			}catch (TrokosException e) {
+				System.out.println("Server Error: " + e.getMessage());
+			}
+			
+		}
+	}
 }
