@@ -1,12 +1,17 @@
 package server;
 
 import java.io.IOException;
+import java.util.Map;
 
 import exceptions.TrokosException;
+import server.model.User;
 
 public class Server implements AutoCloseable {
 	
+	private final static String USERS_FN = "users.txt";
+	
 	private ServerConnection serverConnection;
+	private Map<Integer, User> users;
 	
 	public Server(int port) throws TrokosException {
 		try {
@@ -14,11 +19,7 @@ public class Server implements AutoCloseable {
 		} catch (IOException e) {
 			throw new TrokosException("cannot start server");
 		}
-	}
-
-	@Override
-	public void close() throws Exception {
-		serverConnection.close();
+		loadUsers();
 	}
 
 	public void mainLoop() {
@@ -31,5 +32,19 @@ public class Server implements AutoCloseable {
 			}
 			
 		}
+	}
+	
+	private void loadUsers() {
+		// TODO
+	}
+	
+	private void writeUsers() {
+		// TODO
+	}
+	
+	@Override
+	public void close() throws Exception {
+		serverConnection.close();
+		writeUsers();
 	}
 }
