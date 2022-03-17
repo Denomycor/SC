@@ -1,10 +1,9 @@
 import java.util.Scanner;
-
 import java.io.IOException;
 import java.net.UnknownHostException;
  
 
-public class Main {
+public class Client {
 
     public static String[] getArgs(String[] args, Scanner in){
         if(args.length != 3 && args.length != 2){
@@ -33,9 +32,12 @@ public class Main {
         String username = params[1];
         String password = params[2];
         
-        Connection connection = new Connection();
+        ClientConnection connection = new ClientConnection();
         connection.openConnection(address);
     
+        
+
+
         reader.close();
     }
 }
