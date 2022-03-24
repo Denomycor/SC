@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import exceptions.TrokosException;
-import server.model.User;
+import model.User;
 
 public class Server implements AutoCloseable {
 	

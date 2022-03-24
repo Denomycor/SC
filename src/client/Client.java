@@ -1,54 +1,64 @@
 package client;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import exceptions.TrokosException;
 import network.Connection;
 import network.RequestMessage;
+import network.RequestTypes;
 import network.ResponseMessage;
+import network.ResponseStatus;
 
 
 public class Client implements AutoCloseable {
 
-	private ClientConnectionProperties connProps;
 	private Connection connection;
 	private Scanner sc;
 
-	public Client(String[] args, Scanner sc) throws TrokosException, Exception {
+	public Client(ClientConnectionProperties connProps, Scanner sc, String username, String password) throws TrokosException {
 		this.sc = sc;
-		if( args.length == 2 ) {
-			connProps = new ClientConnectionProperties(args[0], args[1]);
-			promptPassword();
-		} else if( args.length == 3 ) {
-			connProps = new ClientConnectionProperties(args[0], args[1], args[2]);
-		}
 		connection = new Connection(connProps.getHostname(), connProps.getPort());
+		login(username, password == null ? promptPassword() : password);
+	}
+	
+	private void login(String user, String password) throws TrokosException {
+		String args[] = {user, password}; 
+		RequestMessage loginRequest = new RequestMessage(RequestTypes.LOGIN, args);
+		ResponseMessage rsp = sendRequest(loginRequest);
+		if (rsp.getStatus() != ResponseStatus.OK ) {
+			throw new TrokosException("Cannot login with provided credentials");
+		}
 	}
 
-	private void promptPassword() throws TrokosException {
+	private String promptPassword() throws TrokosException {
 		System.out.println("Whats the password?");
-		connProps.setPassword(sc.next());
+		return sc.next();
 	}
 	
 	public void processRequest( ) throws TrokosException  {
 		RequestMessage requested = userInteraction();
-		sendRequest(requested);
-		
+		ResponseMessage rsp = sendRequest(requested);
+		//TODO: evaluate response
 	}
 	
 	private RequestMessage userInteraction( ) {
-		//TODO: ler do sc. returnar RequestMessage com dados 
-		return new RequestMessage();
+		System.out.println("Insert commands");
+		String input = sc.nextLine();
+		String splitInput[] = input.split(" ");
+		RequestTypes type = RequestTypes.getRequestType(splitInput[0]);
+		String args[] = Arrays.copyOfRange(splitInput, 1, splitInput.length);
+		return new RequestMessage(type, args);
 	}
 	
 	private ResponseMessage sendRequest(RequestMessage msg) throws TrokosException {
 		try {
-			connection.write(msg.toString());
+			connection.write(msg);
 		} catch (IOException e) {
 			throw new TrokosException("Failed sending a message");
 		}
 		try {
-			return new ResponseMessage(connection.read());
+			return (ResponseMessage) connection.read();
 		} catch (Exception e) {
 			throw new TrokosException("Failed recieving a message");
 		}

@@ -1,8 +1,14 @@
 package network;
 
-public class ResponseMessage {
+public class ResponseMessage extends Message {
 
-	//TODO whole class
-	public ResponseMessage(String str) {
+	private ResponseStatus status;
+	
+	public ResponseMessage(ResponseStatus status) {
+		this.status = status;
+	}
+
+	public ResponseStatus getStatus() {
+		return status;
 	}
 }

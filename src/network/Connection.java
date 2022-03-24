@@ -5,6 +5,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import exceptions.TrokosException;
+
 
 public class Connection {
 
@@ -12,9 +14,13 @@ public class Connection {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     
-    public Connection(String hostname, int port) throws UnknownHostException, IOException {
-    	socket = new Socket(hostname, port);
-    	openConnection();
+    public Connection(String hostname, int port) throws TrokosException {
+    	try {
+    		socket = new Socket(hostname, port);
+    		openConnection();
+    	} catch (Exception e) {
+			throw new TrokosException("Can not connect to server");
+		}
     }
     
     public Connection(Socket socket) throws IOException {
@@ -33,11 +39,11 @@ public class Connection {
         socket.close();
     }
 
-    public String read() throws ClassNotFoundException, IOException{
-        return (String) in.readObject();
+    public Message read() throws ClassNotFoundException, IOException{
+        return (Message) in.readObject();
     }
     
-    public void write(String write) throws IOException{
+    public void write(Message write) throws IOException{
         out.writeObject(write);
     }
 }
