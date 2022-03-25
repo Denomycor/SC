@@ -3,14 +3,14 @@ package model;
 public class PaymentRequest {
 	
 	private final String id;
-	private final User requester;
+	private final User requested;
 	private final double amount;
 	private boolean paid;
 	private boolean qrcode;
 	
-	public PaymentRequest( String id, User requester, double amount, boolean qrcode ) {
+	public PaymentRequest( String id, User requested, double amount, boolean qrcode ) {
 		this.id = id;
-		this.requester = requester;
+		this.requested = requested;
 		this.amount = amount;
 		this.qrcode = qrcode;
 		paid = false;
@@ -33,7 +33,7 @@ public class PaymentRequest {
 	}
 	
 	public User getRequester( ) {
-		return requester;
+		return requested;
 	}
 
 	public double getAmount() {

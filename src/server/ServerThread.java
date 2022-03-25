@@ -69,8 +69,10 @@ public class ServerThread extends Thread{
 				conn.write(confirmQrcode(args[0]));
 				break;
 			case NEW_GROUP:
+				conn.write(createGroup(args[0]));
 				break;
 			case ADD_USER:
+				conn.write(addToGroup(args[0], args[1]));
 				break;
 			case GROUPS:
 				break;
@@ -161,5 +163,24 @@ public class ServerThread extends Thread{
 			logged.removePayRequest(pr);
 		}
 		return ret;
+	}
+
+	private ResponseMessage createGroup( String groupID ) {
+		if (groups.get(groupID) != null) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Group already exists");
+		}
+		groups.put(groupID, new Group(logged));
+		return new ResponseMessage(ResponseStatus.OK);
+	}
+	
+	private ResponseMessage addToGroup( String userID, String groupID ) {
+		Group group = groups.get(groupID);
+		User target = users.get(userID);
+		if (group == null || group.isMember(target)) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or already a member");
+		} else if(target != group.getOwner()) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Not the group owner");
+		}
+		return new ResponseMessage(ResponseStatus.OK);
 	}
 }
