@@ -86,10 +86,10 @@ public class ServerThread extends Thread{
 				conn.write(statusPayments(args[0]));
 				break;
 			case HISTORY:
+				conn.write(getHistory(args[0]));
 				break;
 			case LOGIN:
 				conn.write(logUser(args[0], args[1]));
-				System.out.println("Got this shit working");
 				break;
 			default:
 				break;
@@ -174,7 +174,7 @@ public class ServerThread extends Thread{
 		if (groups.get(groupID) != null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Group already exists");
 		}
-		groups.put(groupID, new Group(logged));
+		groups.put(groupID, new Group(groupID, logged));
 		return new ResponseMessage(ResponseStatus.OK);
 	}
 	
@@ -183,20 +183,31 @@ public class ServerThread extends Thread{
 		User target = users.get(userID);
 		if (group == null || target == null || group.isMember(target)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group,user or already a member");
-		} else if(logged != group.getOwner()) {
+		} else if(!group.isOwner(logged)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Not the group owner");
 		}
 		return new ResponseMessage(ResponseStatus.OK);
 	}
 	
 	private ResponseMessage getGroups() {
-		StringBuilder sb = new StringBuilder("User's Groups");
+		StringBuilder sb = new StringBuilder("User's Groups: \n\n Owned: \n");
+		StringBuilder owned = new StringBuilder();
+		StringBuilder belongs = new StringBuilder();
+		for(Group g : logged.getGroups()) {
+			if(g.isOwner(logged)) {
+				owned.append(g.getId()+"\n");
+			} else {
+				belongs.append(g.getId()+"\n");
+			}
+		}
+		sb.append((owned.length() == 0 ? "None" : owned));
+		sb.append("\n Belongs: \n" + ((belongs.length() == 0 ? "None" : belongs)));
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
 	}
 	
 	private ResponseMessage dividePayment( String groupID, double amount) {
 		Group group = groups.get(groupID);
-		if(group == null || group.getOwner() != logged) {
+		if(group == null || !group.isOwner(logged)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
 		}
 		group.dividePayment(amount);
@@ -205,10 +216,10 @@ public class ServerThread extends Thread{
 	
 	private ResponseMessage statusPayments( String groupID ) {
 		Group group = groups.get(groupID);
-		if(group == null || group.getOwner() != logged) {
+		if(group == null || !group.isOwner(logged)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
 		}
-		StringBuilder sb = new StringBuilder("\n Ongoing payments for group " + groupID + ": \n");
+		StringBuilder sb = new StringBuilder("\n Ongoing payments for group " + groupID + ": \n\n");
 		for(GroupPayment gp : group.getActive()) {
 			sb.append("--------------- \n");
 			for(PaymentRequest pr : gp.getActive()) {
@@ -219,12 +230,12 @@ public class ServerThread extends Thread{
 		return new ResponseMessage(ResponseStatus.OK);
 	}
 	
-	private ResponseMessage history( String groupID ) {
+	private ResponseMessage getHistory( String groupID ) {
 		Group group = groups.get(groupID);
-		if(group == null || group.getOwner() != logged) {
+		if(group == null || !group.isOwner(logged)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
 		}
-		StringBuilder sb = new StringBuilder("\n Completed payments of the group " + groupID + ": \n");
+		StringBuilder sb = new StringBuilder("\n Completed payments of the group " + groupID + ": \n\n");
 		for(GroupPayment gp : group.getComplete()) {
 			sb.append("--------------- \n");
 			for(PaymentRequest pr : gp.getComplete()) {

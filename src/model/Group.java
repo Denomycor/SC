@@ -9,16 +9,18 @@ import java.util.ArrayList;
 public class Group {
 	
 	private User owner;
+	private String id;
 	private List<User> members;
 	private List<GroupPayment> active;
 	private List<GroupPayment> complete;
 	
-	public Group( User owner ) {
+	public Group( String id, User owner ) {
 		this.owner = owner;
+		this.id = id;
 		this.members = new ArrayList<>();
 		this.active = new ArrayList<>();
 		this.complete = new ArrayList<>();
-		members.add(owner);
+		addMember(owner);
 	}
 
 	public void addMember(User member) {
@@ -37,8 +39,8 @@ public class Group {
 		active.add(payment);
 	}
 	
-	public User getOwner() {
-		return this.owner;
+	public boolean isOwner(User user) {
+		return this.owner == user;
 	}
 	
 	public List<GroupPayment> getActive() {
@@ -51,6 +53,10 @@ public class Group {
 	
 	public boolean isMember(User user) {
 		return members.contains(user);
+	}
+	
+	public String getId() {
+		return this.id;
 	}
 	
 	public void updatePayment(GroupPayment payment) {
