@@ -103,7 +103,7 @@ public class ServerThread extends Thread{
 		for (User u : users.values()) {
 			if(u.getUsername().equals(username) && u.checkPassword(password)) {
 				logged = u;
-				return new ResponseMessage(ResponseStatus.OK);
+				return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 			}
 		}
 		return new ResponseMessage(ResponseStatus.ERROR, "User does not exists or password doesnt match");
@@ -120,7 +120,7 @@ public class ServerThread extends Thread{
 		
 		logged.withdraw(amount);
 		target.deposit(amount);
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	
 	private ResponseMessage requestPayment( String userId, double ammount, boolean qrcode ) {
@@ -129,7 +129,7 @@ public class ServerThread extends Thread{
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
 		target.addRequest(new PaymentRequest(Server.createID(), target, ammount, qrcode, null));
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	
 	private ResponseMessage viewRequest() {
@@ -147,16 +147,19 @@ public class ServerThread extends Thread{
 	}
 	
 	private ResponseMessage PayRequest( String reqId ) {
-		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
-		if (pr == null || pr.isQRcode()) {
-			return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
-		}
-		ResponseMessage ret = makePayment(pr.getRequested().getId(), pr.getAmount());
-		if (ret.getStatus() == ResponseStatus.OK) {
-			pr.markAsPaid();
-		}
-		return ret;
-	}
+        PaymentRequest pr = logged.getRequestedPaymentById(reqId);
+        if (pr == null || pr.isQRcode()) {
+            return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
+        }
+        if (pr.getAmount() > logged.getBalance()) {
+            return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
+        }
+        logged.withdraw(pr.getAmount());
+        pr.getRequested().deposit(pr.getAmount());
+        pr.markAsPaid();
+
+        return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
+    }
 	
 	private ResponseMessage confirmQrcode( String reqId ) {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
@@ -175,7 +178,7 @@ public class ServerThread extends Thread{
 			return new ResponseMessage(ResponseStatus.ERROR, "Group already exists");
 		}
 		groups.put(groupID, new Group(groupID, logged));
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	
 	private ResponseMessage addToGroup( String userID, String groupID ) {
@@ -186,7 +189,7 @@ public class ServerThread extends Thread{
 		} else if(!group.isOwner(logged)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Not the group owner");
 		}
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	
 	private ResponseMessage getGroups() {
@@ -211,7 +214,7 @@ public class ServerThread extends Thread{
 			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
 		}
 		group.dividePayment(amount);
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	
 	private ResponseMessage statusPayments( String groupID ) {
@@ -227,7 +230,7 @@ public class ServerThread extends Thread{
 			}
 			sb.append("--------------- \n");
 		}
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, sb.toString());
 	}
 	
 	private ResponseMessage getHistory( String groupID ) {
@@ -243,6 +246,6 @@ public class ServerThread extends Thread{
 			}
 			sb.append("--------------- \n");
 		}
-		return new ResponseMessage(ResponseStatus.OK);
+		return new ResponseMessage(ResponseStatus.OK, sb.toString());
 	}
 }
