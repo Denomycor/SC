@@ -37,7 +37,7 @@ public class PaymentRequest {
 		return id;
 	}
 	
-	public User getRequester( ) {
+	public User getRequested( ) {
 		return requested;
 	}
 

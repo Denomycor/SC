@@ -41,6 +41,14 @@ public class Group {
 		return this.owner;
 	}
 	
+	public List<GroupPayment> getActive() {
+		return this.active;
+	}
+	
+	public List<GroupPayment> getComplete() {
+		return this.complete;
+	}
+	
 	public boolean isMember(User user) {
 		return members.contains(user);
 	}

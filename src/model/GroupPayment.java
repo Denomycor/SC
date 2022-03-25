@@ -22,6 +22,14 @@ public class GroupPayment {
 	public void addPayment(PaymentRequest payment) {
 		active.add(payment);
 	}
+	
+	public List<PaymentRequest> getActive() {
+		return this.active;
+	}
+	
+	public List<PaymentRequest> getComplete() {
+		return this.complete;
+	}
 
 	public void updatePayment(PaymentRequest payment) {
 		active.remove(payment);

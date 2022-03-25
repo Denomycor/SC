@@ -5,6 +5,7 @@ import java.util.Map;
 
 import exceptions.TrokosException;
 import model.Group;
+import model.GroupPayment;
 import model.PaymentRequest;
 import model.User;
 import network.Connection;
@@ -64,7 +65,7 @@ public class ServerThread extends Thread{
 				conn.write(PayRequest(args[0]));
 				break;
 			case OBTAIN_QR_CODE:
-				conn.write(requestPayment(args[0], Double.parseDouble(args[1]), true));
+				conn.write(requestPayment(logged.getId(), Double.parseDouble(args[0]), true));
 				break;
 			case CONFIRM_QR_CODE:
 				conn.write(confirmQrcode(args[0]));
@@ -79,8 +80,10 @@ public class ServerThread extends Thread{
 				conn.write(getGroups());
 				break;
 			case DIVIDE_PAYMENT:
+				conn.write(dividePayment(args[0], Double.parseDouble(args[1])));
 				break;
 			case STATUS_PAYMENT:
+				conn.write(statusPayments(args[0]));
 				break;
 			case HISTORY:
 				break;
@@ -137,7 +140,7 @@ public class ServerThread extends Thread{
 			if (pr.isPaid()) {
 				continue;
 			}
-			sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequester().getId() + " -> " + pr.getRequester().getUsername() + "\n");
+			sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getUsername() + "\n");
 		}
 		
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
@@ -148,7 +151,7 @@ public class ServerThread extends Thread{
 		if (pr == null || pr.isQRcode()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
 		}
-		ResponseMessage ret = makePayment(pr.getRequester().getId(), pr.getAmount());
+		ResponseMessage ret = makePayment(pr.getRequested().getId(), pr.getAmount());
 		if (ret.getStatus() == ResponseStatus.OK) {
 			pr.markAsPaid();
 		}
@@ -160,7 +163,7 @@ public class ServerThread extends Thread{
 		if (pr == null || !pr.isQRcode()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Qrcode not found");
 		}
-		ResponseMessage ret = makePayment(pr.getRequester().getId(), pr.getAmount());
+		ResponseMessage ret = makePayment(pr.getRequested().getId(), pr.getAmount());
 		if (ret.getStatus() == ResponseStatus.OK) {
 			logged.removePayRequest(pr);
 		}
@@ -178,9 +181,9 @@ public class ServerThread extends Thread{
 	private ResponseMessage addToGroup( String userID, String groupID ) {
 		Group group = groups.get(groupID);
 		User target = users.get(userID);
-		if (group == null || group.isMember(target)) {
-			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or already a member");
-		} else if(target != group.getOwner()) {
+		if (group == null || target == null || group.isMember(target)) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group,user or already a member");
+		} else if(logged != group.getOwner()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Not the group owner");
 		}
 		return new ResponseMessage(ResponseStatus.OK);
@@ -189,5 +192,46 @@ public class ServerThread extends Thread{
 	private ResponseMessage getGroups() {
 		StringBuilder sb = new StringBuilder("User's Groups");
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
+	}
+	
+	private ResponseMessage dividePayment( String groupID, double amount) {
+		Group group = groups.get(groupID);
+		if(group == null || group.getOwner() != logged) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
+		}
+		group.dividePayment(amount);
+		return new ResponseMessage(ResponseStatus.OK);
+	}
+	
+	private ResponseMessage statusPayments( String groupID ) {
+		Group group = groups.get(groupID);
+		if(group == null || group.getOwner() != logged) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
+		}
+		StringBuilder sb = new StringBuilder("\n Ongoing payments for group " + groupID + ": \n");
+		for(GroupPayment gp : group.getActive()) {
+			sb.append("--------------- \n");
+			for(PaymentRequest pr : gp.getActive()) {
+				sb.append(pr.getRequested()+"\n");
+			}
+			sb.append("--------------- \n");
+		}
+		return new ResponseMessage(ResponseStatus.OK);
+	}
+	
+	private ResponseMessage history( String groupID ) {
+		Group group = groups.get(groupID);
+		if(group == null || group.getOwner() != logged) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Invalid group or not the owner");
+		}
+		StringBuilder sb = new StringBuilder("\n Completed payments of the group " + groupID + ": \n");
+		for(GroupPayment gp : group.getComplete()) {
+			sb.append("--------------- \n");
+			for(PaymentRequest pr : gp.getComplete()) {
+				sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getUsername() + "\n");
+			}
+			sb.append("--------------- \n");
+		}
+		return new ResponseMessage(ResponseStatus.OK);
 	}
 }
