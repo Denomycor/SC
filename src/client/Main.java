@@ -41,7 +41,6 @@ public class Main {
 				}
 			}
     	} catch (TrokosException e) {
-    		System.out.println("Program terminated with the following error:");
     		System.out.println(e.getMessage());
 		} catch (Exception e) {
 			System.out.println("Unexpected Error");

@@ -94,7 +94,7 @@ public class ServerThread extends Thread{
 	
 	private ResponseMessage logUser(String username, String password) {
 		for (User u : users.values()) {
-			if(u.getUsername() == username && u.checkPassword(password)) {
+			if(u.getUsername().equals(username) && u.checkPassword(password)) {
 				logged = u;
 				return new ResponseMessage(ResponseStatus.OK);
 			}

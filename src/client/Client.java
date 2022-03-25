@@ -27,11 +27,11 @@ public class Client implements AutoCloseable {
 		RequestMessage loginRequest = new RequestMessage(RequestTypes.LOGIN, args);
 		ResponseMessage rsp = sendRequest(loginRequest);
 		if (rsp.getStatus() != ResponseStatus.OK ) {
-			throw new TrokosException("Cannot login with provided credentials");
+			throw new TrokosException(rsp.getBody());
 		}
 	}
 
-	private String promptPassword() throws TrokosException {
+	private String promptPassword() {
 		System.out.println("Whats the password?");
 		return sc.next();
 	}
@@ -39,7 +39,7 @@ public class Client implements AutoCloseable {
 	public void processRequest( ) throws TrokosException  {
 		RequestMessage requested = userInteraction();
 		ResponseMessage rsp = sendRequest(requested);
-		//TODO: evaluate response
+		System.out.println(rsp.getBody());
 	}
 	
 	private RequestMessage userInteraction( ) throws TrokosException {
