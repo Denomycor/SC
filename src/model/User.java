@@ -22,15 +22,15 @@ public class User {
 		this.username = user;
 		this.password = pass;
 		requestedPayments = new HashMap<>();
-		this.balance = 0;
+		this.balance = 1000;
 	}
 
 	public void deposit(double amount) {
-		this.balance = balance - amount;
+		this.balance = balance + amount;
 	}
 	
 	public void withdraw(double amount) {
-		this.balance = balance + amount;
+		this.balance = balance - amount;
 	}
 	
 	public boolean checkPassword( String password ) {
