@@ -2,6 +2,7 @@ package model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import server.Server;
@@ -13,6 +14,7 @@ public class User {
 	private final String password;
 	private double balance;
 	private Map<String, PaymentRequest> requestedPayments;
+	private List<Group> groups; 
 	
 	
 	public User(String id, String user, String pass) {
@@ -39,6 +41,10 @@ public class User {
 		requestedPayments.put(pr.getId(), pr);
 	}
 	
+	public void addGroup( Group group ) {
+		groups.add(group);
+	}
+	
 	// Getters
 	public String getId() {
 		return id;
@@ -50,6 +56,10 @@ public class User {
 
 	public double getBalance() {
 		return balance;
+	}
+	
+	public List<Group> getGroups() {
+		return groups;
 	}
 	
 	public Collection<PaymentRequest> getRequestedPayments() {

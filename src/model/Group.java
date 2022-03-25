@@ -1,41 +1,40 @@
 package model;
 
 import java.util.List;
-import java.util.Map;
 
 import server.Server;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Group {
 	
 	private User owner;
 	private List<User> members;
-	private Map<String, List<PaymentRequest>> activePayments;
-	private Map<String, List<PaymentRequest>> completePayments;
+	private List<GroupPayment> active;
+	private List<GroupPayment> complete;
 	
 	public Group( User owner ) {
 		this.owner = owner;
 		this.members = new ArrayList<>();
-		this.activePayments = new HashMap<>();
-		this.completePayments = new HashMap<>();
+		this.active = new ArrayList<>();
+		this.complete = new ArrayList<>();
 		members.add(owner);
 	}
 
 	public void addMember(User member) {
 		members.add(member);
+		member.addGroup(this);
 	}
 	
 	public void dividePayment(double amount) {
-		List<PaymentRequest> requests = new ArrayList<>();
 		double value = amount/members.size();
+		GroupPayment payment = new GroupPayment(this);
 		for (User m : members) {
-			PaymentRequest request = new PaymentRequest(Server.createID(), m, value, false);
-			requests.add(request);
+			PaymentRequest request = new PaymentRequest(Server.createID(), m, value, false, payment);
 			m.addRequest(request);
+			payment.addPayment(request);
 		}
-		activePayments.put(Server.createID(), requests);
+		active.add(payment);
 	}
 	
 	public User getOwner() {
@@ -44,5 +43,10 @@ public class Group {
 	
 	public boolean isMember(User user) {
 		return members.contains(user);
+	}
+	
+	public void updatePayment(GroupPayment payment) {
+		active.remove(payment);
+		complete.add(payment);
 	}
 }

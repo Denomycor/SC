@@ -7,12 +7,14 @@ public class PaymentRequest {
 	private final double amount;
 	private boolean paid;
 	private boolean qrcode;
+	private GroupPayment group;
 	
-	public PaymentRequest( String id, User requested, double amount, boolean qrcode ) {
+	public PaymentRequest( String id, User requested, double amount, boolean qrcode, GroupPayment group ) {
 		this.id = id;
 		this.requested = requested;
 		this.amount = amount;
 		this.qrcode = qrcode;
+		this.group = group;
 		paid = false;
 	}
 	
@@ -26,6 +28,9 @@ public class PaymentRequest {
 	
 	public void markAsPaid( ) {
 		paid = true;
+		if(group != null) {
+			group.updatePayment(this);
+		}
 	}
 	
 	public String getId() {

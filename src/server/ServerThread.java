@@ -8,6 +8,7 @@ import model.Group;
 import model.PaymentRequest;
 import model.User;
 import network.Connection;
+import network.Message;
 import network.RequestMessage;
 import network.ResponseMessage;
 import network.ResponseStatus;
@@ -75,6 +76,7 @@ public class ServerThread extends Thread{
 				conn.write(addToGroup(args[0], args[1]));
 				break;
 			case GROUPS:
+				conn.write(getGroups());
 				break;
 			case DIVIDE_PAYMENT:
 				break;
@@ -123,7 +125,7 @@ public class ServerThread extends Thread{
 		if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
-		target.addRequest(new PaymentRequest(Server.createID(), target, ammount, qrcode));
+		target.addRequest(new PaymentRequest(Server.createID(), target, ammount, qrcode, null));
 		return new ResponseMessage(ResponseStatus.OK);
 	}
 	
@@ -182,5 +184,10 @@ public class ServerThread extends Thread{
 			return new ResponseMessage(ResponseStatus.ERROR, "Not the group owner");
 		}
 		return new ResponseMessage(ResponseStatus.OK);
+	}
+	
+	private ResponseMessage getGroups() {
+		StringBuilder sb = new StringBuilder("User's Groups");
+		return new ResponseMessage(ResponseStatus.OK, sb.toString());
 	}
 }
