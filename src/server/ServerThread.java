@@ -66,6 +66,7 @@ public class ServerThread extends Thread{
 				conn.write(requestPayment(args[0], Double.parseDouble(args[1]), true));
 				break;
 			case CONFIRM_QR_CODE:
+				conn.write(confirmQrcode(args[0]));
 				break;
 			case NEW_GROUP:
 				break;
@@ -120,7 +121,7 @@ public class ServerThread extends Thread{
 		if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
-		target.addRequest(new PaymentRequest(userId, logged, ammount, qrcode));
+		target.addRequest(new PaymentRequest(Server.createID(), target, ammount, qrcode));
 		return new ResponseMessage(ResponseStatus.OK);
 	}
 	
@@ -140,6 +141,25 @@ public class ServerThread extends Thread{
 	
 	private ResponseMessage PayRequest( String reqId ) {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
-		return makePayment(pr.getRequester().getId(), pr.getAmount());
+		if (pr == null || pr.isQRcode()) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
+		}
+		ResponseMessage ret = makePayment(pr.getRequester().getId(), pr.getAmount());
+		if (ret.getStatus() == ResponseStatus.OK) {
+			pr.markAsPaid();
+		}
+		return ret;
+	}
+	
+	private ResponseMessage confirmQrcode( String reqId ) {
+		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
+		if (pr == null || !pr.isQRcode()) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Qrcode not found");
+		}
+		ResponseMessage ret = makePayment(pr.getRequester().getId(), pr.getAmount());
+		if (ret.getStatus() == ResponseStatus.OK) {
+			logged.removePayRequest(pr);
+		}
+		return ret;
 	}
 }

@@ -36,7 +36,7 @@ public class User {
 	}
 	
 	public void addRequest( PaymentRequest pr ) {
-		requestedPayments.put(Server.createID(), pr);
+		requestedPayments.put(pr.getId(), pr);
 	}
 	
 	// Getters
@@ -58,6 +58,10 @@ public class User {
 	
 	public PaymentRequest getRequestedPaymentById(String reqId) {
 		return requestedPayments.get(reqId);
+	}
+
+	public void removePayRequest(PaymentRequest pr) {
+		requestedPayments.remove(pr.getId());
 	}
 	
 }
