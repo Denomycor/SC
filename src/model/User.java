@@ -5,18 +5,15 @@ import java.util.Map;
 
 public class User {
 	
-	private String username;
-	private String password;
+	private final String id;
+	private final String username;
+	private final String password;
 	private double balance;
 	private Map<Integer, PaymentRequest> requestedPayments;
-	private Map<Integer, Group> groups;
 	
-	public User(String userPass) {
-		//TODO
-		init();
-	}
 	
-	public User(String user, String pass) {
+	public User(String id, String user, String pass) {
+		this.id = id;
 		this.username = user;
 		this.password = pass;
 		init();
@@ -24,7 +21,6 @@ public class User {
 	
 	private void init( ) {
 		requestedPayments = new HashMap<>();
-		groups = new HashMap<>();
 		this.balance = 0;
 	}
 
@@ -41,6 +37,10 @@ public class User {
 	}
 	
 	// Getters
+	public String getId() {
+		return id;
+	}
+	
 	public String getUsername() {
 		return username;
 	}

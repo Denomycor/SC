@@ -42,11 +42,14 @@ public class Client implements AutoCloseable {
 		//TODO: evaluate response
 	}
 	
-	private RequestMessage userInteraction( ) {
+	private RequestMessage userInteraction( ) throws TrokosException {
 		System.out.println("Insert commands");
 		String input = sc.nextLine();
 		String splitInput[] = input.split(" ");
 		RequestTypes type = RequestTypes.getRequestType(splitInput[0]);
+		if (type == null) {
+			throw new TrokosException("Error command not recognized");
+		}
 		String args[] = Arrays.copyOfRange(splitInput, 1, splitInput.length);
 		return new RequestMessage(type, args);
 	}

@@ -28,9 +28,9 @@ public class Connection {
     	openConnection();
     }
     
-    private void openConnection() throws IOException{ 
-    	in = new ObjectInputStream(socket.getInputStream());
+    private void openConnection() throws IOException{
     	out = new ObjectOutputStream(socket.getOutputStream());
+    	in = new ObjectInputStream(socket.getInputStream());
     }
 
     public void close() throws IOException{
