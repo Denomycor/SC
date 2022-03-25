@@ -1,7 +1,10 @@
 package model;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import server.Server;
 
 public class User {
 	
@@ -9,17 +12,13 @@ public class User {
 	private final String username;
 	private final String password;
 	private double balance;
-	private Map<Integer, PaymentRequest> requestedPayments;
+	private Map<String, PaymentRequest> requestedPayments;
 	
 	
 	public User(String id, String user, String pass) {
 		this.id = id;
 		this.username = user;
 		this.password = pass;
-		init();
-	}
-	
-	private void init( ) {
 		requestedPayments = new HashMap<>();
 		this.balance = 0;
 	}
@@ -36,6 +35,10 @@ public class User {
 		return this.password.equals(password);
 	}
 	
+	public void addRequest( PaymentRequest pr ) {
+		requestedPayments.put(Server.createID(), pr);
+	}
+	
 	// Getters
 	public String getId() {
 		return id;
@@ -47,6 +50,14 @@ public class User {
 
 	public double getBalance() {
 		return balance;
+	}
+	
+	public Collection<PaymentRequest> getRequestedPayments() {
+		return requestedPayments.values();
+	}
+	
+	public PaymentRequest getRequestedPaymentById(String reqId) {
+		return requestedPayments.get(reqId);
 	}
 	
 }

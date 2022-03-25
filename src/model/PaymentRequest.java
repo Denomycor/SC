@@ -2,11 +2,17 @@ package model;
 
 public class PaymentRequest {
 	
-	private int amount;
+	private final String id;
+	private final User requester;
+	private final double amount;
 	private boolean paid;
+	private boolean qrcode;
 	
-	public PaymentRequest( int amount ) {
+	public PaymentRequest( String id, User requester, double amount, boolean qrcode ) {
+		this.id = id;
+		this.requester = requester;
 		this.amount = amount;
+		this.qrcode = qrcode;
 		paid = false;
 	}
 	
@@ -14,7 +20,23 @@ public class PaymentRequest {
 		return paid;
 	}
 	
+	public boolean isQRcode() {
+		return qrcode;
+	}
+	
 	public void markAsPaid( ) {
 		paid = true;
+	}
+	
+	public String getId() {
+		return id;
+	}
+	
+	public User getRequester( ) {
+		return requester;
+	}
+
+	public double getAmount() {
+		return amount;
 	}
 }

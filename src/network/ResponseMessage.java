@@ -12,6 +12,11 @@ public class ResponseMessage extends Message {
 		super(status.toString(), new String[] {});
 		this.status = status;
 	}
+	
+	public ResponseMessage(ResponseStatus status, String msg) {
+		super(status.toString(), new String[] {msg});
+		this.status = status;
+	}
 
 	public ResponseStatus getStatus() {
 		return status;
