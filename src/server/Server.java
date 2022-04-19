@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicLong;
@@ -36,6 +35,13 @@ public class Server implements AutoCloseable {
 			throw new TrokosException("cannot start server");
 		}
 		loadUsers();
+		loadPaymentRequests();
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run( ) {
+				System.out.println("Saving Payment Requests");
+				commitPayRequests();
+			}
+		});
 	}
 
 	public void mainLoop() {
@@ -102,6 +108,7 @@ public class Server implements AutoCloseable {
 	@Override
 	public void close() throws Exception {
 		serverConnection.close();
+		commitPayRequests();
 	}
 	
 	// static

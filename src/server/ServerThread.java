@@ -9,7 +9,6 @@ import model.GroupPayment;
 import model.PaymentRequest;
 import model.User;
 import network.Connection;
-import network.Message;
 import network.RequestMessage;
 import network.ResponseMessage;
 import network.ResponseStatus;
