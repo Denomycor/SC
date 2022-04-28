@@ -2,15 +2,22 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import exceptions.TrokosException;
 import network.Connection;
 
 
 public class ServerConnection implements AutoCloseable{
-    private ServerSocket svSocket;
+    
+	private static ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
+	private SSLServerSocket svSocket;
+    
     
     public ServerConnection(int port) throws IOException {
-    	svSocket = new ServerSocket(port);
+    	svSocket = (SSLServerSocket) ssf.createServerSocket(9096);
     }
 
     public Connection listen() throws TrokosException {

@@ -23,12 +23,14 @@ public class Server implements AutoCloseable {
 	private ServerConnection serverConnection;
 	private Map<String, User> users;
 	private Map<String, Group> groups;
+	private String cypherPassword;
 	
 	private static AtomicLong idCounter = new AtomicLong();
 	
-	public Server(int port) throws TrokosException {
+	public Server(int port, String cypherPassword) throws TrokosException {
 		users = new HashMap<>();
 		groups = new HashMap<>();
+		this.cypherPassword = cypherPassword;
 		try {
 			serverConnection =  new ServerConnection(port);
 		} catch (IOException e) {
