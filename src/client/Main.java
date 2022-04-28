@@ -8,30 +8,26 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		if (args.length < 2) {
+		if (args.length != 5) {
 			System.out.println("Incorrect usage");
 			return;
 		}
 		
 		ClientConnectionProperties connProps = null;
 		try {
-			connProps = new ClientConnectionProperties(args[0]);
+			connProps = new ClientConnectionProperties(args);
 		} catch (TrokosException e) {
 			System.out.println(e.getMessage());
 			return;
+		} catch (Exception e){
+			System.out.println(e.getMessage());
+			return;
 		}
-		 
-    	String username = args[1];
-    	String password = null;
-    	try {
-    		password = args[2];
-    	} catch (ArrayIndexOutOfBoundsException e) {
-    		// Do nothing
-		}
-    	
+
+		
 		Scanner reader = new Scanner(System.in); 
     	
-    	try (Client client = new Client(connProps, reader, username, password)) {
+    	try (Client client = new Client(connProps, reader, connProps.getUserId())) {
     		while (true) {
     			try {
     				client.processRequest();    				

@@ -2,9 +2,6 @@ package network;
 
 public class ResponseMessage extends Message {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -8831947998289447696L;
 	private ResponseStatus status;
 	private String body;
