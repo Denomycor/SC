@@ -1,5 +1,7 @@
 package model;
 
+
+import java.security.PublicKey;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -9,16 +11,16 @@ public class User {
 	
 	private final String id;
 	private final String username;
-	private final String password;
+	private final String keyFile;
 	private double balance;
 	private Map<String, PaymentRequest> requestedPayments;
 	private List<Group> groups; 
 	
 	
-	public User(String id, String user, String pass) {
+	public User(String id, String user, String keyFile) {
 		this.id = id;
 		this.username = user;
-		this.password = pass;
+		this.keyFile = keyFile;
 		requestedPayments = new HashMap<>();
 		this.balance = 1000;
 	}
@@ -29,10 +31,6 @@ public class User {
 	
 	public void withdraw(double amount) {
 		this.balance = balance - amount;
-	}
-	
-	public boolean checkPassword( String password ) {
-		return this.password.equals(password);
 	}
 	
 	public void addRequest( PaymentRequest pr ) {
@@ -48,6 +46,11 @@ public class User {
 		return id;
 	}
 	
+	public PublicKey getKey(){
+		//TODO: load public key from keyFile
+
+	}
+
 	public String getUsername() {
 		return username;
 	}

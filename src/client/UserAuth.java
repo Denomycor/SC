@@ -53,11 +53,11 @@ public class UserAuth {
         
         c.init(Cipher.ENCRYPT_MODE, priv);
         msg.signature = c.doFinal(msg.nonce.getBytes());
-        msg.userId = "";
+        msg.userId = null;
 
         if(msg.flag){
             //User exists
-            msg.nonce = "";
+            msg.nonce = null;
             msg.pub = null;
             sendMessage(msg); 
         }else{
