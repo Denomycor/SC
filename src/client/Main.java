@@ -27,9 +27,10 @@ public class Main {
     	String username = args[4];
     	
 		Scanner reader = new Scanner(System.in);
-		System.setProperty("javax.net.ssl.trustStore", "rsc/" + args[1]);
-		System.setProperty("javax.net.ssl.keyStore", "rsc/maybe/userStores/" + args[2]);
-        System.setProperty("javax.net.ssl.keyStorePassword","rsc/" + args[3]);
+		System.setProperty("javax.net.ssl.trustStore", args[1]);
+		System.setProperty("javax.net.ssl.trustStorePassword", "cliente");
+		System.setProperty("javax.net.ssl.keyStore", args[2]);
+        System.setProperty("javax.net.ssl.keyStorePassword", args[3]);
     	
     	try (Client client = new Client(connProps, reader, username)) {
     		while (true) {

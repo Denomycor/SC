@@ -23,8 +23,9 @@ public class Main {
         }
         
         cypherPassword = args[i];
-        System.setProperty("javax.net.ssl.keyStore", "rsc/" + args[i+1]);
+        System.setProperty("javax.net.ssl.keyStore", args[i+1]);
         System.setProperty("javax.net.ssl.keyStorePassword", args[i+2]);
+     
         
         try ( Server server = new Server(port, cypherPassword) ) {
         	server.mainLoop();

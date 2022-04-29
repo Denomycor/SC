@@ -1,30 +1,30 @@
-package network;
+package client;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
+
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import exceptions.TrokosException;
+import network.Message;
 
 
-public class Connection {
+public class ClientConnection {
 	
-    private Socket socket;
+	private SocketFactory sf = SSLSocketFactory.getDefault();
+    private SSLSocket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     
-    public Connection(String hostname, int port) throws TrokosException {
+    public ClientConnection(String hostname, int port) throws TrokosException {
     	try {
-    		socket = new Socket(hostname, port);
+    		socket = (SSLSocket) sf.createSocket(hostname, port);
     		openConnection();
     	} catch (Exception e) {
 			throw new TrokosException("Can not connect to server");
 		}
-    }
-    
-    public Connection(Socket socket) throws IOException {
-    	this.socket = socket;
-    	openConnection();
     }
     
     private void openConnection() throws IOException{

@@ -34,6 +34,7 @@ public class Server implements AutoCloseable {
 		try {
 			serverConnection =  new ServerConnection(port);
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new TrokosException("cannot start server");
 		}
 		loadUsers();

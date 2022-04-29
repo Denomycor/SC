@@ -12,13 +12,13 @@ import network.ResponseMessage;
 
 public class Client implements AutoCloseable {
 
-	private Connection connection;
+	private ClientConnection connection;
 	private Scanner sc;
 	private UserAuth userAuth;
 
 	public Client(ClientConnectionProperties connProps, Scanner sc, String username) throws TrokosException, Exception {
 		this.sc = sc;
-		connection = new Connection(connProps.getHostname(), connProps.getPort());
+		connection = new ClientConnection(connProps.getHostname(), connProps.getPort());
 		userAuth = new UserAuth(connProps, connection);
 		if(!userAuth.checkAuthentication(username)){
 			throw new TrokosException("Couldn't authenticate user");

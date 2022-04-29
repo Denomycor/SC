@@ -15,9 +15,9 @@ import network.Message;
 public class UserAuth {
     
     private ClientConnectionProperties connProps;
-    private Connection connection;
+    private ClientConnection connection;
 
-    public UserAuth(ClientConnectionProperties connProps, Connection connection){
+    public UserAuth(ClientConnectionProperties connProps, ClientConnection connection){
         this.connProps = connProps;
         this.connection = connection;
     }
@@ -61,7 +61,7 @@ public class UserAuth {
             msg.pub = null;
             sendMessage(msg); 
         }else{
-            //User doesnt exist
+            //User doesn't exist
             msg.pub = cert;
             sendMessage(msg);
         }
