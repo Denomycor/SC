@@ -8,15 +8,18 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		if (args.length < 5) {
+		if (args.length != 5) {
 			System.out.println("Incorrect usage");
 			return;
 		}
 		
 		ClientConnectionProperties connProps = null;
 		try {
-			connProps = new ClientConnectionProperties(args[0]);
+			connProps = new ClientConnectionProperties(args);
 		} catch (TrokosException e) {
+			System.out.println(e.getMessage());
+			return;
+		} catch (Exception e){
 			System.out.println(e.getMessage());
 			return;
 		}

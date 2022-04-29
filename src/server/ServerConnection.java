@@ -1,6 +1,5 @@
 package server;
 import java.io.IOException;
-import java.net.ServerSocket;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;

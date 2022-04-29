@@ -1,5 +1,12 @@
 package model;
 
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -9,18 +16,27 @@ public class User {
 	
 	private final String id;
 	private final String username;
-	private final String password;
+	private final String keyFile;
 	private double balance;
 	private Map<String, PaymentRequest> requestedPayments;
 	private List<Group> groups; 
 	
 	
-	public User(String id, String user, String pass) {
+	public User(String id, String user, String keyFile) {
 		this.id = id;
 		this.username = user;
-		this.password = pass;
+		this.keyFile = keyFile;
 		requestedPayments = new HashMap<>();
 		this.balance = 1000;
+	}
+
+	public static User makeUser(String id, String user, String keyFile, Certificate cert){
+		User userN = new User(id, user, keyFile);
+
+		//TODO: generate certificate;
+
+
+		return userN;
 	}
 
 	public void deposit(double amount) {
@@ -29,10 +45,6 @@ public class User {
 	
 	public void withdraw(double amount) {
 		this.balance = balance - amount;
-	}
-	
-	public boolean checkPassword( String password ) {
-		return this.password.equals(password);
 	}
 	
 	public void addRequest( PaymentRequest pr ) {
@@ -48,6 +60,16 @@ public class User {
 		return id;
 	}
 	
+	public PublicKey getKey() throws CertificateException, FileNotFoundException{
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+    	Certificate cert = cf.generateCertificate(new FileInputStream(keyFile));
+		return cert.getPublicKey();
+	}
+
+	public String getKeyFile(){
+		return keyFile;
+	}
+
 	public String getUsername() {
 		return username;
 	}

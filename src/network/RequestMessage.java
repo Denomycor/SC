@@ -10,6 +10,7 @@ public class RequestMessage extends Message {
 	private String[] args;
 	
 	public RequestMessage(RequestTypes type, String args[]) {
+		super(Message.MessageType.REQUEST);
 		this.type = type;
 		this.args = args;
 	}

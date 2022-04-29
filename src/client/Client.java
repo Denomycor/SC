@@ -8,17 +8,22 @@ import network.Connection;
 import network.RequestMessage;
 import network.RequestTypes;
 import network.ResponseMessage;
-import network.ResponseStatus;
 
 
 public class Client implements AutoCloseable {
 
 	private Connection connection;
 	private Scanner sc;
+	private UserAuth userAuth;
 
-	public Client(ClientConnectionProperties connProps, Scanner sc, String username) throws TrokosException {
+	public Client(ClientConnectionProperties connProps, Scanner sc, String username) throws TrokosException, Exception {
 		this.sc = sc;
 		connection = new Connection(connProps.getHostname(), connProps.getPort());
+		userAuth = new UserAuth(connProps, connection);
+		if(!userAuth.checkAuthentication(username)){
+			throw new TrokosException("Couldn't authenticate user");
+		}
+		
 	}
 	
 	public void processRequest( ) throws TrokosException  {

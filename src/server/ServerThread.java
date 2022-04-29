@@ -1,14 +1,20 @@
 package server;
 
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.Map;
+import java.util.Random;
+
+import javax.crypto.Cipher;
 
 import exceptions.TrokosException;
 import model.Group;
 import model.GroupPayment;
 import model.PaymentRequest;
 import model.User;
+import network.AuthMessage;
 import network.Connection;
+import network.Message;
 import network.RequestMessage;
 import network.ResponseMessage;
 import network.ResponseStatus;
@@ -19,21 +25,33 @@ public class ServerThread extends Thread{
 	private Map<String, User> users;
 	private Map<String, Group> groups;
 	private User logged = null;
+	private Server server;
+
+	private Boolean firstResponse = true;
+	private User authUser = null;
+	private String authUserName;
+	private Long nonce;
 	
-	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
+	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups, Server server) {
 		this.users = users;
 		this.groups = groups;
 		this.conn = conn;
+		this.server = server;
 	}
-	//TODO: don't forget to close connection
+	
 	@Override
 	public void run() {
 		
 		while (true) {
-			RequestMessage request = null;
+			Message request = null;
 			try {
-				request = (RequestMessage) conn.read();
-				handleRequest(request);
+				
+				request = conn.read();
+				if(request.getMessageType().equals(Message.MessageType.USERAUTH)){
+					checkAuthentication((AuthMessage)request);
+				}else{
+					handleRequest((RequestMessage)request);
+				}
 			} catch (Exception e) {
 				
 			}
@@ -42,10 +60,82 @@ public class ServerThread extends Thread{
 		}
 	}
 	
+	private void checkAuthentication(AuthMessage request) throws Exception{
+		if(firstResponse){
+			//Send nonce msg
+			Random rd = new Random();
+			nonce = rd.nextLong();
+			
+			authUserName = request.userId;
+			for(User u : users.values()){
+				if(u.getUsername().equals(request.userId)){
+					authUser = u;
+					break;
+				}
+			}
+
+			request.nonce = nonce.toString();
+			request.flag = authUser != null;
+			request.pub = null;
+			request.signature = null;
+			request.userId = null;
+
+			conn.write(request);
+			firstResponse = false;
+
+		}else{
+			//Receive resp
+			if(authUser != null){
+				//User exists
+				PublicKey pub = authUser.getKey();
+				Cipher c = Cipher.getInstance("RSA");
+				
+        		c.init(Cipher.DECRYPT_MODE, pub);
+        		String nonce2 = new String(c.doFinal(request.signature));
+				
+				request.nonce = null;
+				request.pub = null;
+				request.signature = null;
+				request.userId = null;
+				request.flag = nonce.toString().equals(nonce2);
+				
+				if(request.flag){
+					logged = authUser;
+				}
+
+				conn.write(request);
+				
+			}else{
+				//User doesn't exist
+				Cipher c = Cipher.getInstance("RSA");
+				
+        		c.init(Cipher.DECRYPT_MODE, request.pub.getPublicKey());
+        		String nonce2 = new String(c.doFinal(request.signature));
+				
+				if(nonce.toString().equals(nonce2)){
+					User newUser = User.makeUser(Server.createID(), authUserName, authUserName+".cer", request.pub);
+					server.addUser(newUser);
+
+					request.flag = true;
+					logged = authUser;
+				}else{
+					
+					request.flag = false;
+				}
+
+				request.nonce = null ;
+				request.pub = null;
+				request.signature = null;
+				request.userId = null;
+
+				conn.write(request);
+			}
+		}
+	}
+
 	private void handleRequest(RequestMessage request) throws TrokosException {
 		String args[] = request.getArgs();
 		
-		//TODO: decide how to handle NFE
 		try {	
 			switch (request.getType()) {
 			case BALANCE:
@@ -87,25 +177,12 @@ public class ServerThread extends Thread{
 			case HISTORY:
 				conn.write(getHistory(args[0]));
 				break;
-			case LOGIN:
-				conn.write(logUser(args[0], args[1]));
-				break;
 			default:
 				break;
 			}
 		} catch (IOException e) {
 			System.out.println("Error Sending Reply");
 		}
-	}
-	
-	private ResponseMessage logUser(String username, String password) {
-		for (User u : users.values()) {
-			if(u.getUsername().equals(username) && u.checkPassword(password)) {
-				logged = u;
-				return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
-			}
-		}
-		return new ResponseMessage(ResponseStatus.ERROR, "User does not exists or password doesnt match");
 	}
 	
 	private ResponseMessage makePayment(String userId, double amount) {
