@@ -50,13 +50,17 @@ public class Server implements AutoCloseable {
 		while (true) {
 			try { 
 				Connection con = serverConnection.listen();
-				ServerThread st = new ServerThread(con, users, groups);
+				ServerThread st = new ServerThread(con, users, groups, this);
 				st.start();
 			}catch (TrokosException e) {
 				System.out.println("Server Error: " + e.getMessage());
 			}
 			
 		}
+	}
+
+	public void addUser(User user){
+		users.put(user.getId(), user);
 	}
 	
 	private void loadUsers() throws TrokosException {
@@ -107,10 +111,25 @@ public class Server implements AutoCloseable {
 		}
 	}
 	
+	private void commitUsers(){
+		StringBuilder sb = new StringBuilder();
+		
+		for (User u : users.values()) {
+			sb.append(u.getUsername()+":"+u.getKeyFile()+"\n");
+		}
+
+		try (FileWriter writer = new FileWriter(USERS_FN)) {
+			writer.write(sb.toString());
+		} catch (IOException e) {
+			System.out.println("Failed saving users");
+		}
+	}
+
 	@Override
 	public void close() throws Exception {
 		serverConnection.close();
 		commitPayRequests();
+		commitUsers();
 	}
 	
 	// static

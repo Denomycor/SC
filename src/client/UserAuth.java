@@ -3,7 +3,7 @@ package client;
 import java.io.IOException;
 
 import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.cert.Certificate;
 
 import javax.crypto.Cipher;
 
@@ -48,7 +48,7 @@ public class UserAuth {
         msg = readMessage();
 
         PrivateKey priv = connProps.getPrivateKey();
-        PublicKey pub = connProps.getPublicKey();
+        Certificate cert = connProps.getPublicCertificate();
         Cipher c = Cipher.getInstance("RSA");
         
         c.init(Cipher.ENCRYPT_MODE, priv);
@@ -62,7 +62,7 @@ public class UserAuth {
             sendMessage(msg); 
         }else{
             //User doesnt exist
-            msg.pub = pub;
+            msg.pub = cert;
             sendMessage(msg);
         }
 
