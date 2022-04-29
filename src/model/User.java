@@ -3,10 +3,14 @@ package model;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -30,11 +34,15 @@ public class User {
 		this.balance = 1000;
 	}
 
-	public static User makeUser(String id, String user, String keyFile, Certificate cert){
+	public static User makeUser(String id, String user, String keyFile, Certificate cert) throws CertificateEncodingException, IOException{
 		User userN = new User(id, user, keyFile);
 
 		//TODO: generate certificate;
-
+		final FileOutputStream os = new FileOutputStream(keyFile);
+		os.write("-----BEGIN CERTIFICATE-----\n".getBytes("US-ASCII"));
+		os.write(Base64.getEncoder().encode(cert.getEncoded()));
+		os.write("-----END CERTIFICATE-----\n".getBytes("US-ASCII"));
+		os.close();
 
 		return userN;
 	}
