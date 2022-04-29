@@ -1,2 +1,3 @@
 user password -> password[user_number]
 server password -> svpass
+truststore cliente password -> cliente
