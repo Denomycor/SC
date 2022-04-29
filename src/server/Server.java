@@ -32,7 +32,7 @@ public class Server implements AutoCloseable {
 		groups = new HashMap<>();
 		this.cypherPassword = cypherPassword;
 		try {
-			serverConnection =  new ServerConnection(port);
+			serverConnection = new ServerConnection(port);
 		} catch (IOException e) {
 			throw new TrokosException("cannot start server");
 		}
@@ -42,6 +42,8 @@ public class Server implements AutoCloseable {
 			public void run( ) {
 				System.out.println("Saving Payment Requests");
 				commitPayRequests();
+				System.out.println("Saving Users");
+				commitUsers();
 			}
 		});
 	}

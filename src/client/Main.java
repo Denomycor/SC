@@ -26,7 +26,7 @@ public class Main {
 
 		
 		Scanner reader = new Scanner(System.in); 
-    	
+
     	try (Client client = new Client(connProps, reader, connProps.getUserId())) {
     		while (true) {
     			try {
