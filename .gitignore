@@ -27,6 +27,4 @@ hs_err_pid*
 .classpath
 .project
 
-server/
-client/
 .vscode/
