@@ -16,24 +16,9 @@ public class Client implements AutoCloseable {
 	private Connection connection;
 	private Scanner sc;
 
-	public Client(ClientConnectionProperties connProps, Scanner sc, String username, String password) throws TrokosException {
+	public Client(ClientConnectionProperties connProps, Scanner sc, String username) throws TrokosException {
 		this.sc = sc;
 		connection = new Connection(connProps.getHostname(), connProps.getPort());
-		login(username, password == null ? promptPassword() : password);
-	}
-	
-	private void login(String user, String password) throws TrokosException {
-		String args[] = {user, password}; 
-		RequestMessage loginRequest = new RequestMessage(RequestTypes.LOGIN, args);
-		ResponseMessage rsp = sendRequest(loginRequest);
-		if (rsp.getStatus() != ResponseStatus.OK ) {
-			throw new TrokosException(rsp.getBody());
-		}
-	}
-
-	private String promptPassword() {
-		System.out.println("Whats the password?");
-		return sc.next();
 	}
 	
 	public void processRequest( ) throws TrokosException  {

@@ -17,8 +17,8 @@ import network.Connection;
 
 public class Server implements AutoCloseable {
 	
-	private final static String USERS_FN = "users.txt";
-	private final static String PAY_REQ_FN = "pr.txt";
+	private static final String USERS_FN = "users.txt";
+	private static final String PAY_REQ_FN = "pr.txt";
 	
 	private ServerConnection serverConnection;
 	private Map<String, User> users;

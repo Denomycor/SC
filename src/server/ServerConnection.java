@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 
 import exceptions.TrokosException;
 import network.Connection;
@@ -17,7 +18,7 @@ public class ServerConnection implements AutoCloseable{
     
     
     public ServerConnection(int port) throws IOException {
-    	svSocket = (SSLServerSocket) ssf.createServerSocket(9096);
+    	svSocket = (SSLServerSocket) ssf.createServerSocket(port);
     }
 
     public Connection listen() throws TrokosException {

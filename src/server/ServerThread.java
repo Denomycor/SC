@@ -35,7 +35,7 @@ public class ServerThread extends Thread{
 				request = (RequestMessage) conn.read();
 				handleRequest(request);
 			} catch (Exception e) {
-				continue;
+				
 			}
 			
 				

@@ -8,7 +8,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		if (args.length < 2) {
+		if (args.length < 5) {
 			System.out.println("Incorrect usage");
 			return;
 		}
@@ -21,17 +21,14 @@ public class Main {
 			return;
 		}
 		 
-    	String username = args[1];
-    	String password = null;
-    	try {
-    		password = args[2];
-    	} catch (ArrayIndexOutOfBoundsException e) {
-    		// Do nothing
-		}
+    	String username = args[4];
     	
-		Scanner reader = new Scanner(System.in); 
+		Scanner reader = new Scanner(System.in);
+		System.setProperty("javax.net.ssl.trustStore", "rsc/" + args[1]);
+		System.setProperty("javax.net.ssl.keyStore", "rsc/maybe/userStores/" + args[2]);
+        System.setProperty("javax.net.ssl.keyStorePassword","rsc/" + args[3]);
     	
-    	try (Client client = new Client(connProps, reader, username, password)) {
+    	try (Client client = new Client(connProps, reader, username)) {
     		while (true) {
     			try {
     				client.processRequest();    				
