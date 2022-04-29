@@ -7,10 +7,12 @@ public class ResponseMessage extends Message {
 	private String body;
 	
 	public ResponseMessage(ResponseStatus status) {
+		super(Message.MessageType.RESPONSE);
 		this.status = status;
 	}
 	
 	public ResponseMessage(ResponseStatus status, String msg) {
+		super(Message.MessageType.RESPONSE);
 		this.body = msg;
 		this.status = status;
 	}
