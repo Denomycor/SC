@@ -26,3 +26,7 @@ hs_err_pid*
 # eclipse config files
 .classpath
 .project
+
+server/
+client/
+.vscode/
