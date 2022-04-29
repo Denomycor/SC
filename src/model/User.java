@@ -39,9 +39,9 @@ public class User {
 
 		//TODO: generate certificate;
 		final FileOutputStream os = new FileOutputStream(keyFile);
-		os.write("-----BEGIN CERTIFICATE-----\n".getBytes("US-ASCII"));
+		//os.write("-----BEGIN CERTIFICATE-----\n".getBytes("US-ASCII"));
 		os.write(Base64.getEncoder().encode(cert.getEncoded()));
-		os.write("-----END CERTIFICATE-----\n".getBytes("US-ASCII"));
+		//os.write("-----END CERTIFICATE-----\n".getBytes("US-ASCII"));
 		os.close();
 
 		return userN;
