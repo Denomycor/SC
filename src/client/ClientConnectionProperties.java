@@ -3,14 +3,13 @@ package client;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 
 import exceptions.TrokosException;
@@ -82,8 +81,8 @@ public class ClientConnectionProperties {
 		return (PrivateKey) kstore.getKey("keyRSA", password); //TODO: check private key alias for clients
 	}
 
-	public PublicKey getPublicKey() throws KeyStoreException{
-		return (PublicKey) kstore.getCertificate("keyRSA").getPublicKey();
+	public Certificate getPublicCertificate() throws KeyStoreException{
+		return (Certificate) kstore.getCertificate("keyRSA");
 	}
 	
 	//Setters

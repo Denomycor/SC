@@ -1,9 +1,7 @@
 package server;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import java.util.Random;
 
@@ -27,15 +25,18 @@ public class ServerThread extends Thread{
 	private Map<String, User> users;
 	private Map<String, Group> groups;
 	private User logged = null;
+	private Server server;
 
 	private Boolean firstResponse = true;
 	private User authUser = null;
+	private String authUserName;
 	private Long nonce;
 	
-	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
+	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups, Server server) {
 		this.users = users;
 		this.groups = groups;
 		this.conn = conn;
+		this.server = server;
 	}
 	
 	@Override
@@ -65,6 +66,7 @@ public class ServerThread extends Thread{
 			Random rd = new Random();
 			nonce = rd.nextLong();
 			
+			authUserName = request.userId;
 			for(User u : users.values()){
 				if(u.getUsername().equals(request.userId)){
 					authUser = u;
@@ -107,24 +109,24 @@ public class ServerThread extends Thread{
 				//User doesn't exist
 				Cipher c = Cipher.getInstance("RSA");
 				
-        		c.init(Cipher.DECRYPT_MODE, request.pub);
+        		c.init(Cipher.DECRYPT_MODE, request.pub.getPublicKey());
         		String nonce2 = new String(c.doFinal(request.signature));
 				
-				request.nonce = null ;
-				request.pub = null;
-				request.signature = null;
-				request.userId = null;
-
 				if(nonce.toString().equals(nonce2)){
-					//TODO: Regist user
+					User newUser = User.makeUser(Server.createID(), authUserName, authUserName+".cer", request.pub);
+					server.addUser(newUser);
 
-					
 					request.flag = true;
 					logged = authUser;
 				}else{
 					
 					request.flag = false;
 				}
+
+				request.nonce = null ;
+				request.pub = null;
+				request.signature = null;
+				request.userId = null;
 
 				conn.write(request);
 			}
