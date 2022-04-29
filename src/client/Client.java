@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import exceptions.TrokosException;
-import network.Connection;
 import network.RequestMessage;
 import network.RequestTypes;
 import network.ResponseMessage;
@@ -20,7 +19,7 @@ public class Client implements AutoCloseable {
 		this.sc = sc;
 		connection = new ClientConnection(connProps.getHostname(), connProps.getPort());
 		userAuth = new UserAuth(connProps, connection);
-		if(!userAuth.checkAuthentication(username)){
+		if(Boolean.FALSE.equals(userAuth.checkAuthentication(username))){
 			throw new TrokosException("Couldn't authenticate user");
 		}
 		
