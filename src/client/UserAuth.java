@@ -66,7 +66,7 @@ public class UserAuth {
             sendMessage(msg);
         }
 
-        
+
         msg = readMessage();
 
         //is authenticated

@@ -25,6 +25,7 @@ public class ServerThread extends Thread{
 		this.groups = groups;
 		this.conn = conn;
 	}
+	
 	//TODO: don't forget to close connection
 	@Override
 	public void run() {

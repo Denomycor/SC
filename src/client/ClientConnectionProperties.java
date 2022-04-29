@@ -34,7 +34,7 @@ public class ClientConnectionProperties {
 		this.password = args[3].toCharArray();
 
 		FileInputStream kfile = new FileInputStream(args[2]);
-		kstore = KeyStore.getInstance("PKCS12"); //TODO check keystore format
+		kstore = KeyStore.getInstance("PKCS12");
 		kstore.load(kfile, password);
 
 	}

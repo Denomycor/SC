@@ -27,7 +27,7 @@ public class Main {
         	return;
         }
         
-        try ( Server server = new Server(port, cypherPassword) ) {
+        try (Server server = new Server(port, cypherPassword) ) {
         	server.mainLoop();
         	
         } catch (Exception e) {
