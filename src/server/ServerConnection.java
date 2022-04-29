@@ -11,10 +11,7 @@ import network.Connection;
 
 
 public class ServerConnection implements AutoCloseable{
-    
-	private static ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
-	private SSLServerSocket svSocket;
-    
+    private ServerSocket svSocket;
     
     public ServerConnection(int port) throws IOException {
     	svSocket = (SSLServerSocket) ssf.createServerSocket(port);

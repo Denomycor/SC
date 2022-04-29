@@ -8,7 +8,7 @@ public class Main {
 		String cypherPassword = null;
 		int i = 0;
 		
-        if(args.length == 4) {
+        if(args.length == 4){
             try {
             	port = Integer.parseInt(args[0]);
             	i += 1;

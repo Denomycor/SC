@@ -19,7 +19,7 @@ import network.RequestMessage;
 import network.ResponseMessage;
 import network.ResponseStatus;
 
-public class ServerThread extends Thread{
+public class ServerThread extends Thread {
 	
 	private Connection conn;
 	private Map<String, User> users;
@@ -83,16 +83,19 @@ public class ServerThread extends Thread{
 			conn.write(request);
 			firstResponse = false;
 
+
 		}else{
+
 			//Receive resp
 			if(authUser != null){
 				//User exists
 				PublicKey pub = authUser.getKey();
 				Cipher c = Cipher.getInstance("RSA");
+
 				
         		c.init(Cipher.DECRYPT_MODE, pub);
         		String nonce2 = new String(c.doFinal(request.signature));
-				
+
 				request.nonce = null;
 				request.pub = null;
 				request.signature = null;
@@ -111,13 +114,13 @@ public class ServerThread extends Thread{
 				
         		c.init(Cipher.DECRYPT_MODE, request.pub.getPublicKey());
         		String nonce2 = new String(c.doFinal(request.signature));
-				
+
 				if(nonce.toString().equals(nonce2)){
-					User newUser = User.makeUser(Server.createID(), authUserName, authUserName+".cer", request.pub);
+					User newUser = User.makeUser(Server.createID(), authUserName, authUserName+".txt", request.pub);
 					server.addUser(newUser);
 
 					request.flag = true;
-					logged = authUser;
+					logged = newUser;
 				}else{
 					
 					request.flag = false;
@@ -128,6 +131,7 @@ public class ServerThread extends Thread{
 				request.signature = null;
 				request.userId = null;
 
+				
 				conn.write(request);
 			}
 		}
