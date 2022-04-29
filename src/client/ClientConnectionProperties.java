@@ -78,11 +78,11 @@ public class ClientConnectionProperties {
 	}
 
 	public PrivateKey getPrivateKey() throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException{
-		return (PrivateKey) kstore.getKey("keyRSA", password); //TODO: check private key alias for clients
+		return (PrivateKey) kstore.getKey(userId, password); 
 	}
 
 	public Certificate getPublicCertificate() throws KeyStoreException{
-		return (Certificate) kstore.getCertificate("keyRSA");
+		return kstore.getCertificate(userId);
 	}
 	
 	//Setters

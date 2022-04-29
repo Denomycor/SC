@@ -27,7 +27,7 @@ public class Main {
         System.setProperty("javax.net.ssl.keyStorePassword", args[i+2]);
      
         
-        try ( Server server = new Server(port, cypherPassword) ) {
+        try ( Server server = new Server(port, args[i]) ) {
         	server.mainLoop();
         	
         } catch (Exception e) {
