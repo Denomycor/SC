@@ -7,6 +7,8 @@ import java.util.List;
 
 public class Block {
 	
+	protected static final String BLOCK_NAME_REGEX = "^block_([0-9])+.blk$";
+	protected static final String BLOCK_FOLDER = "./blockchain/";
 	private static int blockSize;
 	private static MessageDigest md;
 	private long id;
@@ -16,7 +18,7 @@ public class Block {
 	 
 	
 	public Block(long id) {
-		byte[] lastHash = new byte[32];
+		lastHash = new byte[32];
 		this.id = id;
 	}
 
