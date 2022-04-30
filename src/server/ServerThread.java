@@ -196,7 +196,7 @@ public class ServerThread extends Thread {
 		if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
-		target.addRequest(new PaymentRequest(Server.createID(), target, ammount, qrcode, null));
+		target.addRequest(new PaymentRequest(Server.createID(),logged.getId(), target, ammount, qrcode, null));
 		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	
@@ -205,10 +205,7 @@ public class ServerThread extends Thread {
 		StringBuilder sb = new StringBuilder("\n Current Pending paymentRequests: \n\n");
 		
 		for (PaymentRequest pr : logged.getRequestedPayments()) {
-			if (pr.isPaid()) {
-				continue;
-			}
-			sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getId() + "\n");
+			sb.append(pr.getId() + " -------- " + pr.getAmount() + " ---------> " + pr.getRequesterId() + "\n");
 		}
 		
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
@@ -220,11 +217,12 @@ public class ServerThread extends Thread {
             return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
         }
         if (pr.getAmount() > logged.getBalance()) {
-            return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
+            return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money");
         }
         logged.withdraw(pr.getAmount());
-        pr.getRequested().deposit(pr.getAmount());
+        users.get(pr.getRequesterId()).deposit(pr.getAmount());
         pr.markAsPaid();
+        logged.removePayRequest(pr);
 
         return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
     }
