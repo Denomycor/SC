@@ -1,6 +1,5 @@
 package network;
 
-import java.security.SignedObject;
 import java.security.cert.Certificate;
 
 public class AuthMessage extends Message{

@@ -1,12 +1,14 @@
 package server;
 
 import java.io.IOException;
+
 import java.security.PublicKey;
 import java.security.Signature;
+
 import java.util.Map;
 import java.util.Random;
 
-import exceptions.TrokosException;
+import helper.Helper;
 import model.Group;
 import model.GroupPayment;
 import model.PaymentRequest;
@@ -104,7 +106,6 @@ public class ServerThread extends Thread {
 
 		}else{
 			//User doesn't exist
-			System.out.println("User doesn't exist");
 			byte[] signed = request.getSignedObject();
 			PublicKey key = request.getCertificate().getPublicKey();
 
@@ -128,7 +129,7 @@ public class ServerThread extends Thread {
 		conn.write(request);
 	}
 
-	private void handleRequest(RequestMessage request) throws TrokosException {
+	private void handleRequest(RequestMessage request) throws NumberFormatException, Exception {
 		String[] args = request.getArgs();
 		
 		try {	
@@ -137,7 +138,11 @@ public class ServerThread extends Thread {
 				conn.write(new ResponseMessage(ResponseStatus.OK, ""+logged.getBalance()));
 				break;
 			case MAKE_PAYMENT:
-				conn.write(makePayment(args[0], Double.parseDouble(args[1])));
+				if(verifyMakePayment(request)){
+					conn.write(makePayment(args[0], Double.parseDouble(args[1])));
+				}else{
+					conn.write(new ResponseMessage(ResponseStatus.ERROR, "Wrong signature"));
+				}
 				break;
 			case REQUEST_PAYMENT:
 				conn.write(requestPayment(args[0], Double.parseDouble(args[1]), false));
@@ -146,7 +151,11 @@ public class ServerThread extends Thread {
 				conn.write(viewRequest());
 				break;
 			case PAY_REQUEST:
-				conn.write(PayRequest(args[0]));
+				if(verifyPayRequest(request)){
+					conn.write(PayRequest(args[0]));
+				}else{
+					conn.write(new ResponseMessage(ResponseStatus.ERROR, "Wrong signature"));
+				}
 				break;
 			case OBTAIN_QR_CODE:
 				conn.write(requestPayment(logged.getId(), Double.parseDouble(args[0]), true));
@@ -318,5 +327,39 @@ public class ServerThread extends Thread {
 			sb.append("--------------- \n");
 		}
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
+	}
+
+	private Boolean verifyMakePayment(RequestMessage request) throws Exception {
+		Signature signature = Signature.getInstance("MD5withRSA");
+		byte[] original = Helper.StringArrayToBytes(request.getArgs());
+
+		byte[] signed = request.getSignature();
+		PublicKey key = logged.getKey();
+
+		signature.initVerify(key);
+		signature.update(original);
+
+		System.out.println(original); //TODO erase me
+		System.out.println(signed); //TODO erase me
+
+		return signature.verify(signed);
+	}
+
+	private Boolean verifyPayRequest(RequestMessage request) throws Exception{
+		String reqId = request.getArgs()[0];
+
+		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
+		String[] toCheck = {pr.getAmount().toString(), pr.getRequested().getId()}; //value, userId
+
+		Signature signature = Signature.getInstance("MD5withRSA");
+		byte[] original = Helper.StringArrayToBytes(toCheck);
+
+		byte[] signed = request.getSignature();
+		PublicKey key = logged.getKey();
+
+		signature.initVerify(key);
+		signature.update(original);
+
+		return signature.verify(signed);
 	}
 }

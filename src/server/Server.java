@@ -91,7 +91,8 @@ public class Server implements AutoCloseable {
 				User target = users.get(data[1]);
 				
 				String id = createID();
-				target.addRequest(new PaymentRequest(id, source, Double.parseDouble(data[2]), Boolean.parseBoolean(data[3]), null));
+				PaymentRequest pr = new PaymentRequest(id, source, Double.parseDouble(data[2]), Boolean.parseBoolean(data[3]), null);
+				target.addRequest(pr);
 			}
 		} catch (FileNotFoundException e) {
 			System.out.println("No payment requests found to load");

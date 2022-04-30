@@ -4,7 +4,7 @@ public class PaymentRequest {
 	
 	private final String id;
 	private final User requested;
-	private final double amount;
+	private final Double amount;
 	private boolean paid;
 	private boolean qrcode;
 	private GroupPayment group;
@@ -41,7 +41,7 @@ public class PaymentRequest {
 		return requested;
 	}
 
-	public double getAmount() {
+	public Double getAmount() {
 		return amount;
 	}
 }

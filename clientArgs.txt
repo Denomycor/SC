@@ -1,2 +1,2 @@
-127.0.0.1:12345 rsc/truststore.client rsc/maybe/userStores/keystore.user4 password4 user4
+127.0.0.1:12345 rsc/truststore.client rsc/maybe/userStores/keystore.user1 password1 user1
 

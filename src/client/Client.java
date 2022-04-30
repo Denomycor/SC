@@ -2,11 +2,13 @@ package client;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -14,6 +16,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import exceptions.TrokosException;
+import helper.Helper;
 import network.AuthMessage;
 import network.Message;
 import network.RequestMessage;
@@ -47,13 +50,13 @@ public class Client implements AutoCloseable {
 
 	}
 
-	public void processRequest() throws TrokosException {
+	public void processRequest() throws TrokosException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException {
 		RequestMessage requested = userInteraction();
 		ResponseMessage rsp = (ResponseMessage) sendRequest(requested);
 		System.out.println(rsp.getBody());
 	}
 
-	private RequestMessage userInteraction() throws TrokosException {
+	private RequestMessage userInteraction() throws TrokosException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException {
 		System.out.println("Insert commands");
 		String input = sc.nextLine();
 		String[] splitInput = input.split(" ");
@@ -62,7 +65,9 @@ public class Client implements AutoCloseable {
 			throw new TrokosException("Error command not recognized");
 		}
 		String[] args = Arrays.copyOfRange(splitInput, 1, splitInput.length);
-		return new RequestMessage(type, args);
+		RequestMessage r = new RequestMessage(type, args);
+		parseRequest(r);
+		return r;
 	}
 
 	private Message sendRequest(Message msg) throws TrokosException {
@@ -88,7 +93,6 @@ public class Client implements AutoCloseable {
 			signature.update(msg.getNonce().getBytes());
 			
 
-			System.out.println("2nd phase"); //TODO erase me
 
 			if(msg.isFlag()){
 				//User exists
@@ -102,7 +106,6 @@ public class Client implements AutoCloseable {
 
 			}
 
-			System.out.println("3rd phase"); //TODO erase me
 			msg = (AuthMessage) sendRequest(msg);
 			return msg.isFlag();
 		}catch(Exception e){
@@ -130,6 +133,37 @@ public class Client implements AutoCloseable {
 			return kstore.getCertificate(userId);
 		} catch (KeyStoreException e) {
 			throw new TrokosException("Error getting public certificate");
+		}
+	}
+
+	private void parseRequest(RequestMessage request) throws TrokosException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException{
+		if(request.getType().equals(RequestTypes.MAKE_PAYMENT)){	
+			byte[] data = Helper.StringArrayToBytes(request.getArgs());
+
+			PrivateKey priv = getPrivateKey();
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initSign(priv);
+			signature.update(data);
+			request.setSignature(signature.sign());
+
+			System.out.println(data); //TODO erase me
+			System.out.println(request.getSignature()); //TODO erase me
+
+		}else if(request.getType().equals(RequestTypes.PAY_REQUEST)){
+			String[] args = {request.getArgs()[0]}; //reqId
+			String[] toSign = {request.getArgs()[1], request.getArgs()[2]}; //value, userId
+			request.setArgs(args);
+
+			byte[] data = Helper.StringArrayToBytes(toSign);
+
+			PrivateKey priv = getPrivateKey();
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initSign(priv);
+			signature.update(data);
+			request.setSignature(signature.sign());
+
+		}else if(request.getType().equals(RequestTypes.CONFIRM_QR_CODE)){
+			//TODO
 		}
 	}
 
