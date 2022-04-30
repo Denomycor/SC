@@ -19,6 +19,7 @@ import network.Message;
 import network.RequestMessage;
 import network.RequestTypes;
 import network.ResponseMessage;
+import server.blockchain.Transaction;
 
 public class Client implements AutoCloseable {
 
@@ -62,6 +63,26 @@ public class Client implements AutoCloseable {
 			throw new TrokosException("Error command not recognized");
 		}
 		String[] args = Arrays.copyOfRange(splitInput, 1, splitInput.length);
+		
+		Transaction t = null;
+		
+		//TODO: make the transaction
+		switch (type) {
+			case MAKE_PAYMENT:		
+				break;
+			case CONFIRM_QR_CODE:
+				break;
+			case PAY_REQUEST:
+				break;
+			default:
+				break;
+		}
+		
+		byte[] signature = null;
+		
+		if ( t != null) {
+			return new RequestMessage(type, t, signature);
+		}
 		return new RequestMessage(type, args);
 	}
 
