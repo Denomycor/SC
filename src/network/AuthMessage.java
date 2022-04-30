@@ -9,7 +9,7 @@ public class AuthMessage extends Message{
 	private static final long serialVersionUID = -6354530460404215477L;
 	private boolean flag;
 	private String nonce;
-	private SignedObject signedObject;
+	private byte[] signedObject;
 	private Certificate certificate;
 	private String userId;
 
@@ -25,7 +25,7 @@ public class AuthMessage extends Message{
 		return nonce;
 	}
 
-	public SignedObject getSignedObject() {
+	public byte[] getSignedObject() {
 		return signedObject;
 	}
 
@@ -41,7 +41,7 @@ public class AuthMessage extends Message{
 		this.nonce = nonce;
 	}
 
-	public void setSignedObject(SignedObject signedObject) {
+	public void setSignedObject(byte[] signedObject) {
 		this.signedObject = signedObject;
 	}
 

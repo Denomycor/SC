@@ -39,7 +39,7 @@ public class User {
 		try{
 			FileOutputStream fos = new FileOutputStream(new File(keyFile));
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.defaultWriteObject();
+
 			oos.writeObject(cert.getEncoded());
 			fos.close();
 		}catch(Exception e){
@@ -69,7 +69,6 @@ public class User {
 	public PublicKey getKey() throws CertificateException, IOException, ClassNotFoundException{
 		FileInputStream fis = new FileInputStream(new File(keyFile));
 		ObjectInputStream ois = new ObjectInputStream(fis);
-		ois.defaultReadObject( );
 
 		byte[] b = (byte[]) ois.readObject();
 		CertificateFactory cf = CertificateFactory.getInstance("X509");

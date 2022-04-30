@@ -84,20 +84,26 @@ public class Client implements AutoCloseable {
 			AuthMessage msg = startAuthentication(userId);
 
 			PrivateKey priv = getPrivateKey();
-			SignedObject signedObject = new SignedObject(msg.getNonce(), priv, Signature.getInstance("MD5withRSA"));
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initSign(priv);
+			signature.update(msg.getNonce().getBytes());
 			
+
+			System.out.println("2nd phase"); //TODO erase me
+
 			if(msg.isFlag()){
 				//User exists
-				msg.setSignedObject(signedObject);
+				msg.setSignedObject(signature.sign());
 
 			}else{
 				//User doesn't exist
 				Certificate certificate = getPublicCertificate();
-				msg.setSignedObject(signedObject);
+				msg.setSignedObject(signature.sign());
 				msg.setCertificate(certificate);
 
 			}
 
+			System.out.println("3rd phase"); //TODO erase me
 			msg = (AuthMessage) sendRequest(msg);
 			return msg.isFlag();
 		}catch(Exception e){

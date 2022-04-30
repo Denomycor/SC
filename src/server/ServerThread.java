@@ -27,7 +27,7 @@ public class ServerThread extends Thread {
 
 	private String userIdAuth = null;
 	private User foundUser = null;
-	private Long nonce;
+	private Long nonce = 0L;
 	
 	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
 		this.users = users;
@@ -61,6 +61,9 @@ public class ServerThread extends Thread {
 			firstStepAuth(request);
 		}else{
 			secondStepAuth(request);
+			nonce = 0L;
+			foundUser = null;
+			userIdAuth = null;
 		}
 	}
 
@@ -87,12 +90,14 @@ public class ServerThread extends Thread {
 		
 		if(foundUser != null){
 			//User exists
-			byte[] signed = request.getSignedObject().getSignature();
+			byte[] signed = request.getSignedObject();
 			PublicKey key = foundUser.getKey();
-			signature.initVerify(key);
-			signature.update(signed);
 
-			if(signature.verify(nonce.toString().getBytes())){
+			signature.initVerify(key);
+			signature.update(nonce.toString().getBytes());
+
+
+			if(signature.verify(signed)){
 				//Success, login user
 				logged = foundUser;
 				request.setFlag(true);
@@ -103,13 +108,15 @@ public class ServerThread extends Thread {
 
 		}else{
 			//User doesn't exist
-			byte[] signed = request.getSignedObject().getSignature();
+			System.out.println("User doesn't exist");
+			byte[] signed = request.getSignedObject();
 			PublicKey key = request.getCertificate().getPublicKey();
-			String nonce2 = (String) request.getSignedObject().getObject();
-			signature.initVerify(key);
-			signature.update(signed);
 
-			if(signature.verify(nonce.toString().getBytes()) && nonce2.equals(nonce.toString())){
+			signature.initVerify(key);
+			signature.update(nonce.toString().getBytes());
+			
+
+			if(signature.verify(signed)){
 				//Success, create user
 				logged = new User(userIdAuth, userIdAuth+".cer", request.getCertificate());
 				users.put(Server.createID(), logged);
