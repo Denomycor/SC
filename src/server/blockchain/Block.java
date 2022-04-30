@@ -1,9 +1,15 @@
 package server.blockchain;
 
+import java.io.FileInputStream;
 import java.nio.ByteBuffer;
+import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.Signature;
 import java.util.ArrayList;
 import java.util.List;
+
+import exceptions.TrokosException;
 
 public class Block {
 	
@@ -33,7 +39,7 @@ public class Block {
 		content.add(transaction);
 	}
 	
-	public byte[] commit() {
+	public byte[] commit() throws TrokosException {
 		byte[][] contentBytes = new byte[5][];
 		int contentByteSize = 0;
 		int index = 0;
@@ -50,7 +56,27 @@ public class Block {
 		for (byte[] c : contentBytes ) {
 			buffer.put(c);
 		}
-		
+
+		byte[] sign;
+
+		try{
+			KeyStore kstore;
+			FileInputStream kfile = new FileInputStream(System.getProperty("javax.net.ssl.keyStore"));
+			kstore = KeyStore.getInstance("PKCS12");
+			kstore.load(kfile, System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
+			PrivateKey priv = (PrivateKey) kstore.getKey("myserver",System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
+
+			byte[] data =  buffer.array();
+
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initSign(priv);
+			signature.update(data);
+
+			sign = signature.sign();
+		}catch(Exception e){
+			throw new TrokosException("Error signing the object");
+		}
+
 		//TODO: sign lastHash + id + size + content
 		//TODO: write to file lastHash + id + size + content + signature
 		
