@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -35,10 +37,11 @@ public class User {
 		this(userId, keyFile);
 
 		try{
-			byte[] encoded = cert.getEncoded();
-			FileOutputStream out = new FileOutputStream(new File(keyFile));
-			out.write(encoded);
-			out.close();
+			FileOutputStream fos = new FileOutputStream(new File(keyFile));
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.defaultWriteObject();
+			oos.writeObject(cert.getEncoded());
+			fos.close();
 		}catch(Exception e){
 			System.out.println(e.getMessage());
 		}
@@ -63,11 +66,16 @@ public class User {
 	
 	// Getters
 	
-	public PublicKey getKey() throws CertificateException, IOException{
-		FileInputStream in = new FileInputStream(new File(keyFile));
-		byte b[] = in.readAllBytes();
+	public PublicKey getKey() throws CertificateException, IOException, ClassNotFoundException{
+		FileInputStream fis = new FileInputStream(new File(keyFile));
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		ois.defaultReadObject( );
+
+		byte[] b = (byte[]) ois.readObject();
 		CertificateFactory cf = CertificateFactory.getInstance("X509");
 		Certificate certificate = cf.generateCertificate(new ByteArrayInputStream(b));
+
+		fis.close();
 		return certificate.getPublicKey();
 	}
 
