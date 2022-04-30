@@ -28,5 +28,5 @@ hs_err_pid*
 .project
 
 .vscode/
-server/
-client/
+./server/
+./client/

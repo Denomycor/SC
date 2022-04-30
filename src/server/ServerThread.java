@@ -3,10 +3,8 @@ package server;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.security.Signature;
-import java.security.SignedObject;
 import java.util.Map;
 import java.util.Random;
-
 
 import exceptions.TrokosException;
 import model.Group;
