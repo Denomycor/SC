@@ -346,8 +346,13 @@ public class ServerThread extends Thread {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
 		String[] toCheck = {pr.getAmount().toString(), pr.getRequested().getId()}; //value, userId
 
+		System.out.println(toCheck[0]); //TODO erase me
+		System.out.println(toCheck[1]); //TODO erase me
+
 		Signature signature = Signature.getInstance("MD5withRSA");
 		byte[] original = Helper.StringArrayToBytes(toCheck);
+
+		System.out.println(original); //TODO erase me
 
 		byte[] signed = request.getSignature();
 		PublicKey key = logged.getKey();

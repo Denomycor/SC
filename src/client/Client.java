@@ -151,7 +151,12 @@ public class Client implements AutoCloseable {
 			String[] toSign = {request.getArgs()[1], request.getArgs()[2]}; //value, userId
 			request.setArgs(args);
 
+			System.out.println(toSign[0]); //TODO erase me
+			System.out.println(toSign[1]); //TODO erase me
+			
 			byte[] data = Helper.StringArrayToBytes(toSign);
+
+			System.out.println(data); //TODO erase me
 
 			PrivateKey priv = getPrivateKey();
 			Signature signature = Signature.getInstance("MD5withRSA");
