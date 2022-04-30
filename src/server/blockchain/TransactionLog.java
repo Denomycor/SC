@@ -44,7 +44,7 @@ public class TransactionLog {
 		return singleton;
 	}
 	
-	public void addTransaction(Transaction transaction) {
+	public synchronized void addTransaction(Transaction transaction) {
 		block.add(transaction);
 		if (block.isFull()) {
 			byte[] blockHash = block.commit();
