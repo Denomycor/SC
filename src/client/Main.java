@@ -1,7 +1,5 @@
 package client;
 
-import java.util.Scanner;
-
 import exceptions.TrokosException;
 
 public class Main {
@@ -15,7 +13,7 @@ public class Main {
 		
 		ClientConnectionProperties connProps = null;
 		try {
-			connProps = new ClientConnectionProperties(args);
+			connProps = new ClientConnectionProperties(args[0]);
 		} catch (TrokosException e) {
 			System.out.println(e.getMessage());
 			return;
@@ -23,16 +21,14 @@ public class Main {
 			System.out.println(e.getMessage());
 			return;
 		}
-		 
-    	String username = args[4];
     	
-		Scanner reader = new Scanner(System.in);
+		
 		System.setProperty("javax.net.ssl.trustStore", args[1]);
 		System.setProperty("javax.net.ssl.trustStorePassword", "cliente");
 		System.setProperty("javax.net.ssl.keyStore", args[2]);
         System.setProperty("javax.net.ssl.keyStorePassword", args[3]);
     	
-    	try (Client client = new Client(connProps, reader, username)) {
+    	try (Client client = new Client(connProps, args[4])) {
     		while (true) {
     			try {
     				client.processRequest();    				
@@ -47,9 +43,8 @@ public class Main {
 			System.out.println("Unexpected Error");
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-		} finally {
-			reader.close();
-		}
+		} 
+
     }
 
 }

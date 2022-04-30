@@ -5,13 +5,12 @@ public class Main {
 	public static void main(String[] args){
 		
 		int port = 45678;
-		String cypherPassword = null;
 		int i = 0;
 		
         if(args.length == 4){
             try {
             	port = Integer.parseInt(args[0]);
-            	i += 1;
+            	i++;
             } catch (NumberFormatException e) {
 				System.out.println("Cannot Parse given port continued with default");
 			}
@@ -22,7 +21,6 @@ public class Main {
         	return;
         }
         
-        cypherPassword = args[i];
         System.setProperty("javax.net.ssl.keyStore", args[i+1]);
         System.setProperty("javax.net.ssl.keyStorePassword", args[i+2]);
      

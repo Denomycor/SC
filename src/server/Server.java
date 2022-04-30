@@ -40,6 +40,7 @@ public class Server implements AutoCloseable {
 		loadUsers();
 		loadPaymentRequests();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
 			public void run( ) {
 				System.out.println("Saving Payment Requests");
 				commitPayRequests();
@@ -53,7 +54,7 @@ public class Server implements AutoCloseable {
 		while (true) {
 			try { 
 				Connection con = serverConnection.listen();
-				ServerThread st = new ServerThread(con, users, groups, this);
+				ServerThread st = new ServerThread(con, users, groups);
 				st.start();
 			}catch (TrokosException e) {
 				System.out.println("Server Error: " + e.getMessage());
@@ -71,9 +72,8 @@ public class Server implements AutoCloseable {
 		try (Scanner sc = new Scanner(file)) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
-				String data[] = line.split(":");
-				String id = createID();
-				users.put(id, new User(id,data[0],data[1]));
+				String[] data = line.split(":");
+				users.put(data[0], new User(data[0],data[1]));
 			}
 		} catch (FileNotFoundException e) {
 			throw new TrokosException("Could not load users");
@@ -85,7 +85,7 @@ public class Server implements AutoCloseable {
 		try (Scanner sc = new Scanner(file)) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
-				String data[] = line.split(":");
+				String[] data = line.split(":");
 				
 				User source = users.get(data[0]);
 				User target = users.get(data[1]);
@@ -118,7 +118,7 @@ public class Server implements AutoCloseable {
 		StringBuilder sb = new StringBuilder();
 		
 		for (User u : users.values()) {
-			sb.append(u.getUsername()+":"+u.getKeyFile()+"\n");
+			sb.append(u.getId()+":"+u.getKeyFile()+"\n");
 		}
 
 		try (FileWriter writer = new FileWriter(USERS_FN)) {

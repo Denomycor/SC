@@ -25,18 +25,12 @@ public class ServerThread extends Thread {
 	private Map<String, User> users;
 	private Map<String, Group> groups;
 	private User logged = null;
-	private Server server;
 
-	private Boolean firstResponse = true;
-	private User authUser = null;
-	private String authUserName;
-	private Long nonce;
 	
-	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups, Server server) {
+	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
 		this.users = users;
 		this.groups = groups;
 		this.conn = conn;
-		this.server = server;
 	}
 	
 	@Override
@@ -61,18 +55,12 @@ public class ServerThread extends Thread {
 	}
 	
 	private void checkAuthentication(AuthMessage request) throws Exception{
-		if(firstResponse){
+		if(true){
 			//Send nonce msg
 			Random rd = new Random();
-			nonce = rd.nextLong();
+			long nonce = rd.nextLong();
+			User unAuth = users.get(request.getUserId());
 			
-			authUserName = request.userId;
-			for(User u : users.values()){
-				if(u.getUsername().equals(request.userId)){
-					authUser = u;
-					break;
-				}
-			}
 
 			request.nonce = nonce.toString();
 			request.flag = authUser != null;
@@ -116,8 +104,9 @@ public class ServerThread extends Thread {
         		String nonce2 = new String(c.doFinal(request.signature));
 
 				if(nonce.toString().equals(nonce2)){
-					User newUser = User.makeUser(Server.createID(), authUserName, authUserName+".txt", request.pub);
-					server.addUser(newUser);
+					String newId = Server.createID();
+					User newUser = User.makeUser(newId, newId+".txt", request.pub);
+					users.put(newId, newUser);
 
 					request.flag = true;
 					logged = newUser;
@@ -138,7 +127,7 @@ public class ServerThread extends Thread {
 	}
 
 	private void handleRequest(RequestMessage request) throws TrokosException {
-		String args[] = request.getArgs();
+		String[] args = request.getArgs();
 		
 		try {	
 			switch (request.getType()) {
@@ -220,7 +209,7 @@ public class ServerThread extends Thread {
 			if (pr.isPaid()) {
 				continue;
 			}
-			sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getUsername() + "\n");
+			sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getId() + "\n");
 		}
 		
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
@@ -322,7 +311,7 @@ public class ServerThread extends Thread {
 		for(GroupPayment gp : group.getComplete()) {
 			sb.append("--------------- \n");
 			for(PaymentRequest pr : gp.getComplete()) {
-				sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getUsername() + "\n");
+				sb.append(pr.getId() + " -------- " + pr.getAmount() + " -------- " + pr.getRequested().getId() + " -> " + pr.getRequested().getId() + "\n");
 			}
 			sb.append("--------------- \n");
 		}

@@ -9,7 +9,6 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -22,30 +21,28 @@ import java.util.Scanner;
 
 public class User {
 	
-	private final String id;
-	private final String username;
+	private final String userId;
 	private final String keyFile;
 	private double balance;
 	private Map<String, PaymentRequest> requestedPayments;
 	private List<Group> groups; 
 	
 	
-	public User(String id, String user, String keyFile) {
-		this.id = id;
-		this.username = user;
+	public User(String userId, String keyFile) {
+		this.userId = userId;
 		this.keyFile = keyFile;
 		requestedPayments = new HashMap<>();
 		this.balance = 1000;
 	}
 
-	public static User makeUser(String id, String user, String keyFile, Certificate cert) throws CertificateEncodingException, IOException{
-		User userN = new User(id, user, keyFile);
-
+	public static User makeUser(String userId, String keyFile, Certificate cert) throws IOException{
+		User userN = new User(userId, keyFile);
+		
 		String pub = Base64.getEncoder().encodeToString(cert.getPublicKey().getEncoded());
-		FileWriter w = new FileWriter(new File(keyFile));
-		w.write(pub);
-		w.close();
-
+		try(FileWriter w = new FileWriter(new File(keyFile))) {
+			w.write(pub);
+		}
+		
 		return userN;
 	}
 
@@ -66,9 +63,6 @@ public class User {
 	}
 	
 	// Getters
-	public String getId() {
-		return id;
-	}
 	
 	public PublicKey getKey() throws CertificateException, FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException{
 		Scanner sc = new Scanner(new File(keyFile));
@@ -85,8 +79,8 @@ public class User {
 		return keyFile;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getId() {
+		return userId;
 	}
 
 	public double getBalance() {

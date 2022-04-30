@@ -2,15 +2,6 @@ package client;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 
 import exceptions.TrokosException;
 
@@ -21,21 +12,9 @@ public class ClientConnectionProperties {
 	
 	private String hostname;
 	private int port;
-	private String truststore;
-	private String userId;
-	private char[] password;
-	private KeyStore kstore;
 
-	public ClientConnectionProperties(String[] args) throws TrokosException, KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
-		parseAddress(args[0]);
-		this.truststore = args[1];
-		this.userId = args[4];
-		this.password = args[3].toCharArray();
-
-		FileInputStream kfile = new FileInputStream(args[2]);
-		kstore = KeyStore.getInstance("PKCS12");
-		kstore.load(kfile, password);
-
+	public ClientConnectionProperties(String address) throws TrokosException {
+		parseAddress(address);
 	}
 	
 	private void parseAddress( String address) throws TrokosException {
@@ -43,13 +22,13 @@ public class ClientConnectionProperties {
     	Matcher matcher = pat.matcher(address);
     	matcher.find();
     	setHostname(matcher.group(1));
-    	int port = 0;
+    	int inPort = 0;
     	try {
-    		port = Integer.parseInt(matcher.group(2));
+    		inPort = Integer.parseInt(matcher.group(2));
     	}catch (NumberFormatException e) {
 			throw new TrokosException("Error. Port is not a number");
 		}
-    	setPort(port);
+    	setPort(inPort);
 	}
 
 	//Static methods
@@ -67,22 +46,6 @@ public class ClientConnectionProperties {
 
 	public int getPort() {
 		return port;
-	}
-
-	public String getTruststore() {
-		return truststore;
-	}
-
-	public String getUserId() {
-		return userId;
-	}
-
-	public PrivateKey getPrivateKey() throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException{
-		return (PrivateKey) kstore.getKey(userId, password); 
-	}
-
-	public Certificate getPublicCertificate() throws KeyStoreException{
-		return kstore.getCertificate(userId);
 	}
 	
 	//Setters

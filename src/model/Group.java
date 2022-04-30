@@ -40,7 +40,7 @@ public class Group {
 	}
 	
 	public boolean isOwner(User user) {
-		return this.owner == user;
+		return this.owner.equals(user);
 	}
 	
 	public List<GroupPayment> getActive() {
