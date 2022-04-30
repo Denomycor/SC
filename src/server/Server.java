@@ -4,9 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import exceptions.TrokosException;
@@ -21,15 +20,15 @@ public class Server implements AutoCloseable {
 	private static final String PAY_REQ_FN = "pr.txt";
 	
 	private ServerConnection serverConnection;
-	private Map<String, User> users;
-	private Map<String, Group> groups;
+	private ConcurrentHashMap<String, User> users;
+	private ConcurrentHashMap<String, Group> groups;
 	private String cypherPassword;
 	
 	private static AtomicLong idCounter = new AtomicLong();
 	
 	public Server(int port, String cypherPassword) throws TrokosException {
-		users = new HashMap<>();
-		groups = new HashMap<>();
+		users = new ConcurrentHashMap<>();
+		groups = new ConcurrentHashMap<>();
 		this.cypherPassword = cypherPassword;
 		try {
 			serverConnection = new ServerConnection(port);
