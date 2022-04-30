@@ -2,10 +2,11 @@ package server;
 
 import java.io.IOException;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignedObject;
 import java.util.Map;
 import java.util.Random;
 
-import javax.crypto.Cipher;
 
 import exceptions.TrokosException;
 import model.Group;
@@ -26,6 +27,9 @@ public class ServerThread extends Thread {
 	private Map<String, Group> groups;
 	private User logged = null;
 
+	private String userIdAuth = null;
+	private User foundUser = null;
+	private Long nonce;
 	
 	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
 		this.users = users;
@@ -55,75 +59,72 @@ public class ServerThread extends Thread {
 	}
 	
 	private void checkAuthentication(AuthMessage request) throws Exception{
-		if(true){
-			//Send nonce msg
-			Random rd = new Random();
-			long nonce = rd.nextLong();
-			User unAuth = users.get(request.getUserId());
-			
-
-			request.nonce = nonce.toString();
-			request.flag = authUser != null;
-			request.pub = null;
-			request.signature = null;
-			request.userId = null;
-
-			conn.write(request);
-			firstResponse = false;
-
-
+		if(userIdAuth == null) {
+			firstStepAuth(request);
 		}else{
+			secondStepAuth(request);
+		}
+	}
 
-			//Receive resp
-			if(authUser != null){
-				//User exists
-				PublicKey pub = authUser.getKey();
-				Cipher c = Cipher.getInstance("RSA");
-
-				
-        		c.init(Cipher.DECRYPT_MODE, pub);
-        		String nonce2 = new String(c.doFinal(request.signature));
-
-				request.nonce = null;
-				request.pub = null;
-				request.signature = null;
-				request.userId = null;
-				request.flag = nonce.toString().equals(nonce2);
-				
-				if(request.flag){
-					logged = authUser;
-				}
-
-				conn.write(request);
-				
-			}else{
-				//User doesn't exist
-				Cipher c = Cipher.getInstance("RSA");
-				
-        		c.init(Cipher.DECRYPT_MODE, request.pub.getPublicKey());
-        		String nonce2 = new String(c.doFinal(request.signature));
-
-				if(nonce.toString().equals(nonce2)){
-					String newId = Server.createID();
-					User newUser = User.makeUser(newId, newId+".txt", request.pub);
-					users.put(newId, newUser);
-
-					request.flag = true;
-					logged = newUser;
-				}else{
-					
-					request.flag = false;
-				}
-
-				request.nonce = null ;
-				request.pub = null;
-				request.signature = null;
-				request.userId = null;
-
-				
-				conn.write(request);
+	private void firstStepAuth(AuthMessage request) throws IOException{
+		userIdAuth = request.getUserId();
+		for(User u : users.values()){
+			if(u.getId().equals(userIdAuth)){
+				foundUser = u;
+				break;
 			}
 		}
+
+		Random rd = new Random();
+		nonce = rd.nextLong();
+		
+		request.setFlag(foundUser != null);
+		request.setNonce(nonce.toString());
+
+		conn.write(request);
+	}
+
+	private void secondStepAuth(AuthMessage request) throws Exception{
+		Signature signature = Signature.getInstance("MD5withRSA");
+		
+		if(foundUser != null){
+			//User exists
+			byte[] signed = request.getSignedObject().getSignature();
+			PublicKey key = foundUser.getKey();
+			signature.initVerify(key);
+			signature.update(signed);
+
+			if(signature.verify(nonce.toString().getBytes())){
+				//Success, login user
+				logged = foundUser;
+				request.setFlag(true);
+			}else{
+				//Miss
+				request.setFlag(false);
+			}
+
+		}else{
+			//User doesn't exist
+			byte[] signed = request.getSignedObject().getSignature();
+			PublicKey key = request.getCertificate().getPublicKey();
+			String nonce2 = (String) request.getSignedObject().getObject();
+			signature.initVerify(key);
+			signature.update(signed);
+
+			if(signature.verify(nonce.toString().getBytes()) && nonce2.equals(nonce.toString())){
+				//Success, create user
+				logged = User.makeUser(userIdAuth, userIdAuth+".cer", request.getCertificate());
+				users.put(Server.createID(), logged);
+
+				request.setFlag(true);
+			}else{
+				//Miss
+				request.setFlag(false);
+			}
+
+		}
+
+		conn.write(request);
 	}
 
 	private void handleRequest(RequestMessage request) throws TrokosException {

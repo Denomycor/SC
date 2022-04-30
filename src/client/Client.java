@@ -2,21 +2,17 @@ package client;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.SignedObject;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Scanner;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import exceptions.TrokosException;
 import network.AuthMessage;
@@ -83,39 +79,30 @@ public class Client implements AutoCloseable {
 		}
 	}
 
-	private boolean checkAuthentication(String userId) throws TrokosException {
-		//TODO Try catch if authentication fails (stop in main)
-		// send userId
-		AuthMessage msg = startAuthentication(userId);
-		//#2
-		PrivateKey priv = getPrivateKey();
-		Certificate cert = getPublicCertificate();
-		try {
-			Cipher c = Cipher.getInstance("RSA");
+	private boolean checkAuthentication(String userId){
+		try{
+			AuthMessage msg = startAuthentication(userId);
 
-			c.init(Cipher.ENCRYPT_MODE, priv);
-			msg.signature = c.doFinal(msg.nonce.getBytes());
-		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
-				| BadPaddingException e) {
-			// Review exception message
-			throw new TrokosException("Error encrypting nonce");
+			PrivateKey priv = getPrivateKey();
+			SignedObject signedObject = new SignedObject(msg.getNonce(), priv, Signature.getInstance("MD5withRSA"));
+			
+			if(msg.isFlag()){
+				//User exists
+				msg.setSignedObject(signedObject);
+
+			}else{
+				//User doesn't exist
+				Certificate certificate = getPublicCertificate();
+				msg.setSignedObject(signedObject);
+				msg.setCertificate(certificate);
+
+			}
+
+			msg = (AuthMessage) sendRequest(msg);
+			return msg.isFlag();
+		}catch(Exception e){
+			return false;
 		}
-
-		msg.userId = null;
-
-		if (msg.flag) {
-			// User exists
-			msg.nonce = null;
-			msg.pub = null;
-		} else {
-			// User doesn't exist
-			msg.pub = cert;
-		}
-
-		msg = (AuthMessage) sendRequest(msg);
-
-		// is authenticated
-		return msg.flag;
 	}
 	
 	private AuthMessage startAuthentication(String userId) throws TrokosException {

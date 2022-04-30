@@ -1,5 +1,6 @@
 package network;
 
+import java.security.SignedObject;
 import java.security.cert.Certificate;
 
 public class AuthMessage extends Message{
@@ -8,8 +9,8 @@ public class AuthMessage extends Message{
 	private static final long serialVersionUID = -6354530460404215477L;
 	private boolean flag;
 	private String nonce;
-	private byte[] signature;
-	private Certificate pub;
+	private SignedObject signedObject;
+	private Certificate certificate;
 	private String userId;
 
     public AuthMessage(){
@@ -24,12 +25,8 @@ public class AuthMessage extends Message{
 		return nonce;
 	}
 
-	public byte[] getSignature() {
-		return signature;
-	}
-
-	public Certificate getPub() {
-		return pub;
+	public SignedObject getSignedObject() {
+		return signedObject;
 	}
 
 	public String getUserId() {
@@ -44,16 +41,20 @@ public class AuthMessage extends Message{
 		this.nonce = nonce;
 	}
 
-	public void setSignature(byte[] signature) {
-		this.signature = signature;
-	}
-
-	public void setPub(Certificate pub) {
-		this.pub = pub;
+	public void setSignedObject(SignedObject signedObject) {
+		this.signedObject = signedObject;
 	}
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public Certificate getCertificate() {
+		return certificate;
+	}
+
+	public void setCertificate(Certificate certificate) {
+		this.certificate = certificate;
 	}
 
 }
