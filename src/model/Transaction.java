@@ -1,4 +1,4 @@
-package server.blockchain;
+package model;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;

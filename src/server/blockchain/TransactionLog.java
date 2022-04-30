@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import exceptions.TrokosException;
+import model.Transaction;
 
 public class TransactionLog {
 

@@ -14,12 +14,12 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import exceptions.TrokosException;
+import model.Transaction;
 import network.AuthMessage;
 import network.Message;
 import network.RequestMessage;
 import network.RequestTypes;
 import network.ResponseMessage;
-import server.blockchain.Transaction;
 
 public class Client implements AutoCloseable {
 

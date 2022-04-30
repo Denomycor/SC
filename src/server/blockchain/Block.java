@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.Transaction;
+
 public class Block {
 	
 	protected static final String BLOCK_NAME_REGEX = "^block_([0-9])+.blk$";

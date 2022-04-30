@@ -1,6 +1,6 @@
 package network;
 
-import server.blockchain.Transaction;
+import model.Transaction;
 
 public class RequestMessage extends Message {
 	
