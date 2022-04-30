@@ -1,10 +1,9 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import server.Server;
-
-import java.util.ArrayList;
 
 public class Group {
 	
