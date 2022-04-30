@@ -69,12 +69,8 @@ public class ServerThread extends Thread {
 
 	private void firstStepAuth(AuthMessage request) throws IOException{
 		userIdAuth = request.getUserId();
-		for(User u : users.values()){
-			if(u.getId().equals(userIdAuth)){
-				foundUser = u;
-				break;
-			}
-		}
+
+		foundUser = users.get(userIdAuth);
 
 		Random rd = new Random();
 		nonce = rd.nextLong();
@@ -119,7 +115,7 @@ public class ServerThread extends Thread {
 			if(signature.verify(signed)){
 				//Success, create user
 				logged = new User(userIdAuth, userIdAuth+".cer", request.getCertificate());
-				users.put(Server.createID(), logged);
+				users.put(userIdAuth, logged);
 
 				request.setFlag(true);
 			}else{
