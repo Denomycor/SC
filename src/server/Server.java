@@ -97,8 +97,10 @@ public class Server implements AutoCloseable {
 				String[] data = line.split(":");
 				Group g = new Group(data[0], users.get(data[1]));
 				groups.put(data[0], g);
-				for(String s : data[2].split(",")) {
-					g.addMember(users.get(s));
+				if(data.length > 2) {
+					for(String s : data[2].split(",")) {
+						g.addMember(users.get(s));
+					}
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -129,7 +131,7 @@ public class Server implements AutoCloseable {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
-				String groupPayId = data[5].trim() == "null" ? null : data[5];
+				String groupPayId = data[5].trim().equals("null") ? null : data[5];
 				PaymentRequest pr = new PaymentRequest(data[0], data[1], users.get(data[2]), Double.parseDouble(data[3]), 
 						Boolean.parseBoolean(data[4]), groupPayId);
 				if(Boolean.parseBoolean(data[6])) {
@@ -137,8 +139,9 @@ public class Server implements AutoCloseable {
 				} else {
 					pr.getRequested().addRequest(pr);
 				}
-				if(pr.isGroup())
+				if(pr.isGroup()) {
 					gp.get(pr.getGroupPayId()).addPayment(pr);
+				}
 			}
 		} catch (FileNotFoundException e) {
 			throw new TrokosException("Could not load payment requests");

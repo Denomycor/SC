@@ -267,6 +267,7 @@ public class ServerThread extends Thread {
 		} else if(!group.isOwner(logged)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Not the group owner");
 		}
+		group.addMember(target);
 		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 	

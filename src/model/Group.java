@@ -34,7 +34,7 @@ public class Group {
 		double value = amount/members.size();
 		GroupPayment payment = new GroupPayment(Server.createID(), id);
 		for (User m : members) {
-			PaymentRequest request = new PaymentRequest(Server.createID(),owner.getId(), m, value, false, payment.getId());
+			PaymentRequest request = new PaymentRequest(Server.createID(), owner.getId(), m, value, false, payment.getId());
 			m.addRequest(request);
 			payment.addPayment(request);
 		}
