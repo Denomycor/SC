@@ -1,5 +1,7 @@
 package network;
 
+import model.Transaction;
+
 public class RequestMessage extends Message {
 	
 	/**
@@ -9,10 +11,20 @@ public class RequestMessage extends Message {
 	private RequestTypes type;
 	private String[] args;
 	
+	private Transaction transaction;
+	private byte[] signature;
+	
 	public RequestMessage(RequestTypes type, String args[]) {
-		super(Message.MessageType.REQUEST);
+		super(MessageType.REQUEST);
 		this.type = type;
 		this.args = args;
+	}
+	
+	public RequestMessage(RequestTypes type, Transaction transaction, byte[] signature) {
+		super(MessageType.REQUEST);
+		this.type = type;
+		this.transaction = transaction;
+		this.signature = signature;
 	}
 
 	public RequestTypes getType() {
@@ -21,5 +33,13 @@ public class RequestMessage extends Message {
 
 	public String[] getArgs() {
 		return args;
+	}
+
+	public Transaction getTransaction() {
+		return transaction;
+	}
+
+	public byte[] getSignature() {
+		return signature;
 	}
 }

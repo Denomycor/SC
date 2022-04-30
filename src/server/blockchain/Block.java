@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import exceptions.TrokosException;
+import model.Transaction;
 
 public class Block {
 	

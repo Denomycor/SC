@@ -7,7 +7,7 @@ public abstract class Message implements Serializable {
 	private MessageType type;
 
 	public enum MessageType {
-		NONE, REQUEST, RESPONSE, USERAUTH
+		REQUEST, RESPONSE, USERAUTH, TRANSACTION
 	}
 
 	public Message(MessageType type){
