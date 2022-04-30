@@ -113,7 +113,7 @@ public class ServerThread extends Thread {
 
 			if(signature.verify(nonce.toString().getBytes()) && nonce2.equals(nonce.toString())){
 				//Success, create user
-				logged = User.makeUser(userIdAuth, userIdAuth+".cer", request.getCertificate());
+				logged = new User(userIdAuth, userIdAuth+".cer", request.getCertificate());
 				users.put(Server.createID(), logged);
 
 				request.setFlag(true);
