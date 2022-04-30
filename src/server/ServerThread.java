@@ -339,9 +339,6 @@ public class ServerThread extends Thread {
 		signature.initVerify(key);
 		signature.update(original);
 
-		System.out.println(original); //TODO erase me
-		System.out.println(signed); //TODO erase me
-
 		return signature.verify(signed);
 	}
 

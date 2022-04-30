@@ -146,9 +146,6 @@ public class Client implements AutoCloseable {
 			signature.update(data);
 			request.setSignature(signature.sign());
 
-			System.out.println(data); //TODO erase me
-			System.out.println(request.getSignature()); //TODO erase me
-
 		}else if(request.getType().equals(RequestTypes.PAY_REQUEST)){
 			String[] args = {request.getArgs()[0]}; //reqId
 			String[] toSign = {request.getArgs()[1], request.getArgs()[2]}; //value, userId
