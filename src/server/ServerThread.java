@@ -235,8 +235,8 @@ public class ServerThread extends Thread {
 			return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
 		}
 
-		Transaction t = new Transaction(pr.getRequested().getId(), pr.getAmount());
-
+		Transaction t = new Transaction(pr.getRequesterId(), pr.getAmount());
+		
 		if (!verifySignedTransaction(t)) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
 		}
