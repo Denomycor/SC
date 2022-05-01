@@ -13,7 +13,7 @@ import exceptions.TrokosException;
 import model.Group;
 import model.GroupPayment;
 import model.PaymentRequest;
-import model.Transaction;
+import model.TransactionDto;
 import model.User;
 import network.AuthMessage;
 import network.Connection;
@@ -21,6 +21,7 @@ import network.Message;
 import network.RequestMessage;
 import network.ResponseMessage;
 import network.ResponseStatus;
+import server.blockchain.Transaction;
 import server.blockchain.TransactionLog;
 
 public class ServerThread extends Thread {
@@ -194,9 +195,9 @@ public class ServerThread extends Thread {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
 
-		Transaction t = new Transaction(target.getId(), amount);
+		Transaction t = new Transaction(logged.getId(), target.getId(), amount);
 
-		if (!verifySignedTransaction(t)) {
+		if (!verifySignedTransaction(new TransactionDto(t))) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
 		}
 
@@ -237,9 +238,9 @@ public class ServerThread extends Thread {
 			return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
 		}
 
-		Transaction t = new Transaction(pr.getRequesterId(), pr.getAmount());
+		Transaction t = new Transaction(logged.getId(), pr.getRequesterId(), pr.getAmount());
 		
-		if (!verifySignedTransaction(t)) {
+		if (!verifySignedTransaction(new TransactionDto(t))) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
 		}
 
@@ -352,7 +353,7 @@ public class ServerThread extends Thread {
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
 	}
 
-	private boolean verifySignedTransaction(Transaction transaction) throws TrokosException {
+	private boolean verifySignedTransaction(TransactionDto transaction) throws TrokosException {
 		ResponseMessage msg = new ResponseMessage(ResponseStatus.TRANSACTION_REQ, transaction);
 		try {
 			conn.write(msg);
@@ -373,7 +374,7 @@ public class ServerThread extends Thread {
 
 			Signature signature = Signature.getInstance("MD5withRSA");
 
-			byte[] data = Transaction.getBytes(transaction);
+			byte[] data = TransactionDto.getBytes(transaction);
 
 			PublicKey key = logged.getKey();
 			signature.initVerify(key);
