@@ -102,5 +102,4 @@ public class User {
 	public void removePayRequest(PaymentRequest pr) {
 		requestedPayments.remove(pr.getId());
 	}
-
 }

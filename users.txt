@@ -1,1 +1,2 @@
 user1:server/user1.cer
+user2:server/user2.cer

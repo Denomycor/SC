@@ -56,9 +56,10 @@ public class ServerThread extends Thread {
 				} else {
 					handleRequest((RequestMessage) request);
 				}
-			} catch (Exception e) {
-				// TODO: This needs to be a TrokosException
+			} catch (TrokosException e) {
 				e.printStackTrace();
+			} catch (Exception e){
+				return;
 			}
 
 		}
@@ -256,6 +257,15 @@ public class ServerThread extends Thread {
 		if (pr == null || !pr.isQRcode()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Qrcode not found");
 		}
+
+		Transaction t = new Transaction(pr.getRequesterId(), pr.getAmount());
+		
+		if (!verifySignedTransaction(t)) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
+		}
+
+		transactionLog.addTransaction(t);
+
 		ResponseMessage ret = makePayment(pr.getRequested().getId(), pr.getAmount());
 		if (ret.getStatus() == ResponseStatus.OK) {
 			logged.removePayRequest(pr);
