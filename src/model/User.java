@@ -36,8 +36,8 @@ public class User {
 	public User(String userId, String keyFile, Certificate cert) {
 		this(userId, keyFile);
 
-		try(FileOutputStream fos = new FileOutputStream(new File(keyFile));) {
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
+		try(FileOutputStream fos = new FileOutputStream(new File(keyFile));
+			ObjectOutputStream oos = new ObjectOutputStream(fos);) {
 
 			oos.writeObject(cert.getEncoded());
 		} catch (Exception e) {
