@@ -32,6 +32,7 @@ public class Server implements AutoCloseable {
 	private ServerConnection serverConnection;
 	private ConcurrentHashMap<String, User> users;
 	private ConcurrentHashMap<String, Group> groups;
+	private ConcurrentHashMap<String, PaymentRequest> qrPayments;
 	private TransactionLog transactionLog;
 	private String cypherPassword;
 
@@ -40,6 +41,7 @@ public class Server implements AutoCloseable {
 	public Server(int port, String cypherPassword) throws TrokosException {
 		users = new ConcurrentHashMap<>();
 		groups = new ConcurrentHashMap<>();
+		qrPayments = new ConcurrentHashMap<>();
 		this.cypherPassword = cypherPassword;
 		try {
 			serverConnection = new ServerConnection(port);
@@ -73,7 +75,7 @@ public class Server implements AutoCloseable {
 		while (true) {
 			try {
 				Connection con = serverConnection.listen();
-				ServerThread st = new ServerThread(con, users, groups, transactionLog);
+				ServerThread st = new ServerThread(con, users, groups, qrPayments, transactionLog);
 				st.start();
 			} catch (TrokosException e) {
 				System.out.println("Server Error: " + e.getMessage());
@@ -141,10 +143,10 @@ public class Server implements AutoCloseable {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
-				String groupPayId = data[5].trim().equals("null") ? null : data[5];
+				String groupPayId = data[4].trim().equals("null") ? null : data[4];
 				PaymentRequest pr = new PaymentRequest(data[0], data[1], users.get(data[2]),
-						Double.parseDouble(data[3]), Boolean.parseBoolean(data[4]), groupPayId);
-				if (Boolean.parseBoolean(data[6])) {
+						Double.parseDouble(data[3]), groupPayId);
+				if (Boolean.parseBoolean(data[5])) {
 					pr.markAsPaid();
 				} else {
 					pr.getRequested().addRequest(pr);
@@ -213,7 +215,7 @@ public class Server implements AutoCloseable {
 			for (PaymentRequest pr : u.getRequestedPayments()) {
 				if (!pr.isGroup()) {
 					sb.append(pr.getId() + ":" + pr.getRequesterId() + ":" + u.getId() + ":" + pr.getAmount() + ":"
-							+ pr.isQRcode() + ":" + "null" + ":" + pr.isPaid() + "\n");
+							+ "null" + ":" + pr.isPaid() + "\n");
 				}
 			}
 		}
@@ -221,7 +223,7 @@ public class Server implements AutoCloseable {
 			for (GroupPayment gp : g.getGroupPayments()) {
 				for (PaymentRequest pr : gp.getPayments()) {
 					sb.append(pr.getId() + ":" + pr.getRequesterId() + ":" + pr.getRequested().getId() + ":"
-							+ pr.getAmount() + ":" + pr.isQRcode() + ":" + pr.getGroupPayId() + ":" + pr.isPaid()
+							+ pr.getAmount() + ":" + pr.getGroupPayId() + ":" + pr.isPaid()
 							+ "\n");
 				}
 			}

@@ -8,6 +8,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import exceptions.TrokosException;
 import model.Group;
@@ -28,6 +29,7 @@ public class ServerThread extends Thread {
 	private Connection conn;
 	private Map<String, User> users;
 	private Map<String, Group> groups;
+	private Map<String, PaymentRequest> qrPayments;
 	private User logged = null;
 	private TransactionLog transactionLog;
 
@@ -36,9 +38,10 @@ public class ServerThread extends Thread {
 	private Long nonce = 0L;
 
 	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups,
-			TransactionLog transactionLog) {
+			Map<String, PaymentRequest> qrPayments, TransactionLog transactionLog) {
 		this.users = users;
 		this.groups = groups;
+		this.qrPayments = qrPayments;
 		this.conn = conn;
 		this.transactionLog = transactionLog;
 	}
@@ -144,7 +147,7 @@ public class ServerThread extends Thread {
 					conn.write(makePayment(args[0], Double.parseDouble(args[1])));
 					break;
 				case REQUEST_PAYMENT:
-					conn.write(requestPayment(args[0], Double.parseDouble(args[1]), false));
+					conn.write(requestPayment(args[0], Double.parseDouble(args[1])));
 					break;
 				case VIEW_REQUESTS:
 					conn.write(viewRequest());
@@ -153,7 +156,7 @@ public class ServerThread extends Thread {
 					conn.write(PayRequest(args[0]));
 					break;
 				case OBTAIN_QR_CODE:
-					conn.write(requestPayment(logged.getId(), Double.parseDouble(args[0]), true));
+					conn.write(obtainQRCode(Double.parseDouble(args[0])));
 					break;
 				case CONFIRM_QR_CODE:
 					conn.write(confirmQrcode(args[0]));
@@ -206,14 +209,15 @@ public class ServerThread extends Thread {
 		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 
-	private ResponseMessage requestPayment(String userId, double ammount, boolean qrcode) {
+	private ResponseMessage requestPayment(String userId, double ammount) {
 		User target = users.get(userId);
 		if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
-		target.addRequest(new PaymentRequest(Server.createID(), logged.getId(), target, ammount, qrcode, null));
+		target.addRequest(new PaymentRequest(Server.createID(), logged.getId(), target, ammount, null));
 		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
+	
 
 	private ResponseMessage viewRequest() {
 
@@ -228,7 +232,7 @@ public class ServerThread extends Thread {
 
 	private ResponseMessage PayRequest(String reqId) throws TrokosException {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
-		if (pr == null || pr.isQRcode()) {
+		if (pr == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
 		}
 		if (pr.getAmount() > logged.getBalance()) {
@@ -250,10 +254,16 @@ public class ServerThread extends Thread {
 
 		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
+	
+	private ResponseMessage obtainQRCode(double amount) {
+		String qrcode = UUID.randomUUID().toString();
+		qrPayments.put(qrcode, new PaymentRequest(Server.createID(), logged.getId(), null, amount, null));
+		return new ResponseMessage(ResponseStatus.OB_QR, qrcode);
+	}
 
 	private ResponseMessage confirmQrcode(String reqId) throws TrokosException {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
-		if (pr == null || !pr.isQRcode()) {
+		if (pr == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Qrcode not found");
 		}
 		ResponseMessage ret = makePayment(pr.getRequested().getId(), pr.getAmount());
