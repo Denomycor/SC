@@ -7,15 +7,15 @@ public class Transaction implements Serializable {
 	
 	private static final long serialVersionUID = -220512868026077576L;
 	
-	private long destId;
+	private String destId;
 	private double ammount;
 	
-	public Transaction(long destId, double ammount) {
+	public Transaction(String destId, double ammount) {
 		this.destId = destId;
 		this.ammount = ammount;
 	}
 
-	public long getDestId() {
+	public String getDestId() {
 		return destId;
 	}
 

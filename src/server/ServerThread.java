@@ -1,8 +1,11 @@
 package server;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.util.Map;
 import java.util.Random;
 
@@ -10,6 +13,7 @@ import exceptions.TrokosException;
 import model.Group;
 import model.GroupPayment;
 import model.PaymentRequest;
+import model.Transaction;
 import model.User;
 import network.AuthMessage;
 import network.Connection;
@@ -43,20 +47,21 @@ public class ServerThread extends Thread {
 			try {
 				
 				request = conn.read();
-				if(request.getMessageType().equals(Message.MessageType.USERAUTH)){
+				if(request.getMessageType().equals(Message.MessageType.USERAUTH)) {
 					checkAuthentication((AuthMessage)request);
-				}else{
+				} else {
 					handleRequest((RequestMessage)request);
 				}
 			} catch (Exception e) {
-				
+				// TODO: This needs to be a TrokosException
+				e.printStackTrace();
 			}
 			
 				
 		}
 	}
 	
-	private void checkAuthentication(AuthMessage request) throws Exception{
+	private void checkAuthentication(AuthMessage request) throws Exception {
 		if(userIdAuth == null) {
 			firstStepAuth(request);
 		}else{
@@ -184,13 +189,19 @@ public class ServerThread extends Thread {
 		}
 	}
 	
-	private ResponseMessage makePayment(String userId, double amount) {
+	private ResponseMessage makePayment(String userId, double amount) throws TrokosException {
 		User target = users.get(userId);
 		if (amount > logged.getBalance()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
 		}
 		if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
+		}
+		
+		Transaction t = new Transaction(target.getId(), amount);
+		
+		if (!verifySignedTransaction(t)) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
 		}
 		
 		logged.withdraw(amount);
@@ -236,7 +247,7 @@ public class ServerThread extends Thread {
         return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
     }
 	
-	private ResponseMessage confirmQrcode( String reqId ) {
+	private ResponseMessage confirmQrcode( String reqId ) throws TrokosException {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
 		if (pr == null || !pr.isQRcode()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Qrcode not found");
@@ -322,5 +333,40 @@ public class ServerThread extends Thread {
 			sb.append("--------------- \n");
 		}
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
+	}
+	
+	private boolean verifySignedTransaction(Transaction transaction) throws TrokosException {
+		ResponseMessage msg = new ResponseMessage(ResponseStatus.OK, transaction);
+		try {
+			conn.write(msg);
+		} catch (IOException e) {
+			throw new TrokosException("Error requesting signature");
+		}
+		
+		RequestMessage signTransaction = null;
+		
+		try {
+			signTransaction = (RequestMessage) conn.read();
+		} catch (ClassNotFoundException | IOException e) {
+			throw new TrokosException("Error recieving signed transaction");
+		}
+		
+		try {
+			byte[] recieved = signTransaction.getSignature();
+			
+			Signature signature = Signature.getInstance("MD5withRSA");
+			
+			byte[] data = transaction.getBytes();
+			
+			PublicKey key = logged.getKey();
+			signature.initVerify(key);
+			
+			signature.update(data);
+			
+			return signature.verify(recieved);
+			
+		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+			throw new TrokosException("Error verifying signature");
+		}
 	}
 }

@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import exceptions.TrokosException;
+
 public class User {
 	
 	private final String userId;
@@ -66,15 +68,16 @@ public class User {
 	
 	// Getters
 	
-	public PublicKey getKey() throws CertificateException, IOException, ClassNotFoundException{
-		FileInputStream fis = new FileInputStream(new File(keyFile));
-		ObjectInputStream ois = new ObjectInputStream(fis);
-
-		byte[] b = (byte[]) ois.readObject();
-		CertificateFactory cf = CertificateFactory.getInstance("X509");
-		Certificate certificate = cf.generateCertificate(new ByteArrayInputStream(b));
-
-		fis.close();
+	public PublicKey getKey() throws TrokosException {
+		Certificate certificate = null;
+		
+		try (FileInputStream fis = new FileInputStream(new File(keyFile)); ObjectInputStream ois = new ObjectInputStream(fis)) {
+			byte[] b = (byte[]) ois.readObject();
+			CertificateFactory cf = CertificateFactory.getInstance("X509");
+			certificate = cf.generateCertificate(new ByteArrayInputStream(b));
+		} catch (IOException | ClassNotFoundException | CertificateException e) {
+			throw new TrokosException("Can not get user public key");
+		}
 		return certificate.getPublicKey();
 	}
 
