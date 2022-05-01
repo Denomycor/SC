@@ -116,7 +116,7 @@ public class ServerThread extends Thread {
 
 		}else{
 			//User doesn't exist
-			System.out.println("User doesn't exist");
+			System.out.println("User doesn't exist"); //TODO erase me
 			byte[] signed = request.getSignedObject();
 			PublicKey key = request.getCertificate().getPublicKey();
 
@@ -127,7 +127,7 @@ public class ServerThread extends Thread {
 			if(signature.verify(signed)){
 				//Success, create user
 				logged = new User(userIdAuth, userIdAuth+".cer", request.getCertificate());
-				users.put(Server.createID(), logged);
+				users.put(logged.getId(), logged);
 
 				request.setFlag(true);
 			}else{
@@ -237,14 +237,24 @@ public class ServerThread extends Thread {
 		return new ResponseMessage(ResponseStatus.OK, sb.toString());
 	}
 	
-	private ResponseMessage PayRequest( String reqId ) {
+	private ResponseMessage PayRequest( String reqId ) throws TrokosException {
         PaymentRequest pr = logged.getRequestedPaymentById(reqId);
         if (pr == null || pr.isQRcode()) {
             return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
         }
         if (pr.getAmount() > logged.getBalance()) {
             return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
-        }
+        
+		}
+
+		Transaction t = new Transaction(pr.getRequested().getId(), pr.getAmount());
+		
+		if (!verifySignedTransaction(t)) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
+		}
+		
+		transactionLog.addTransaction(t);
+
         logged.withdraw(pr.getAmount());
         pr.getRequested().deposit(pr.getAmount());
         pr.markAsPaid();
