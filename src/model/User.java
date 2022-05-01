@@ -1,6 +1,5 @@
 package model;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,14 +18,13 @@ import java.util.Map;
 import exceptions.TrokosException;
 
 public class User {
-	
+
 	private final String userId;
 	private final String keyFile;
 	private double balance;
 	private Map<String, PaymentRequest> requestedPayments;
-	private List<Group> groups; 
-	
-	
+	private List<Group> groups;
+
 	public User(String userId, String keyFile) {
 		this.userId = userId;
 		this.keyFile = keyFile;
@@ -35,42 +33,42 @@ public class User {
 		groups = new ArrayList<>();
 	}
 
-	public User(String userId, String keyFile, Certificate cert){
+	public User(String userId, String keyFile, Certificate cert) {
 		this(userId, keyFile);
 
-		try{
+		try {
 			FileOutputStream fos = new FileOutputStream(new File(keyFile));
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			oos.writeObject(cert.getEncoded());
 			fos.close();
-		}catch(Exception e){
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-		
+
 	}
 
 	public void deposit(double amount) {
 		this.balance = balance + amount;
 	}
-	
+
 	public void withdraw(double amount) {
 		this.balance = balance - amount;
 	}
-	
-	public void addRequest( PaymentRequest pr ) {
+
+	public void addRequest(PaymentRequest pr) {
 		requestedPayments.put(pr.getId(), pr);
 	}
-	
-	public void addGroup( Group group ) {
+
+	public void addGroup(Group group) {
 		groups.add(group);
 	}
-	
+
 	// Getters
-	
+
 	public PublicKey getKey() throws TrokosException {
 		Certificate certificate = null;
-		
+
 		try (FileInputStream fis = new FileInputStream(new File("rsc/maybe/cert/" + keyFile))) {
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
 			certificate = cf.generateCertificate(fis);
@@ -81,8 +79,7 @@ public class User {
 		return certificate.getPublicKey();
 	}
 
-
-	public String getKeyFile(){
+	public String getKeyFile() {
 		return keyFile;
 	}
 
@@ -93,15 +90,15 @@ public class User {
 	public double getBalance() {
 		return balance;
 	}
-	
+
 	public List<Group> getGroups() {
 		return groups;
 	}
-	
+
 	public Collection<PaymentRequest> getRequestedPayments() {
 		return requestedPayments.values();
 	}
-	
+
 	public PaymentRequest getRequestedPaymentById(String reqId) {
 		return requestedPayments.get(reqId);
 	}
@@ -109,5 +106,5 @@ public class User {
 	public void removePayRequest(PaymentRequest pr) {
 		requestedPayments.remove(pr.getId());
 	}
-	
+
 }

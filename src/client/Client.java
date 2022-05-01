@@ -34,7 +34,7 @@ public class Client implements AutoCloseable {
 	public Client(ClientConnectionProperties connProps, String userId) throws TrokosException {
 		this.userId = userId;
 		sc = new Scanner(System.in);
-		
+
 		try (FileInputStream kfile = new FileInputStream(System.getProperty("javax.net.ssl.keyStore"))) {
 			kstore = KeyStore.getInstance("PKCS12");
 			kstore.load(kfile, System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
@@ -54,7 +54,7 @@ public class Client implements AutoCloseable {
 	public void processRequest() throws TrokosException {
 		RequestMessage requested = userInteraction();
 		ResponseMessage rsp = (ResponseMessage) sendRequest(requested);
-		if (rsp.getStatus() == ResponseStatus.TRANSACTION_REQ ) {
+		if (rsp.getStatus() == ResponseStatus.TRANSACTION_REQ) {
 			rsp = signTransaction(rsp);
 		}
 		System.out.println(rsp.getBody());
@@ -69,8 +69,7 @@ public class Client implements AutoCloseable {
 			throw new TrokosException("Error command not recognized");
 		}
 		String[] args = Arrays.copyOfRange(splitInput, 1, splitInput.length);
-		
-		
+
 		return new RequestMessage(type, args);
 	}
 
@@ -87,21 +86,21 @@ public class Client implements AutoCloseable {
 		}
 	}
 
-	private boolean checkAuthentication(String userId){
-		try{
+	private boolean checkAuthentication(String userId) {
+		try {
 			AuthMessage msg = startAuthentication(userId);
 
 			PrivateKey priv = getPrivateKey();
 			Signature signature = Signature.getInstance("MD5withRSA");
 			signature.initSign(priv);
 			signature.update(msg.getNonce().getBytes());
-			
-			if(msg.isFlag()){
-				//User exists
+
+			if (msg.isFlag()) {
+				// User exists
 				msg.setSignedObject(signature.sign());
 
-			}else{
-				//User doesn't exist
+			} else {
+				// User doesn't exist
 				Certificate certificate = getPublicCertificate();
 				msg.setSignedObject(signature.sign());
 				msg.setCertificate(certificate);
@@ -110,20 +109,21 @@ public class Client implements AutoCloseable {
 
 			msg = (AuthMessage) sendRequest(msg);
 			return msg.isFlag();
-		}catch(Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private AuthMessage startAuthentication(String userId) throws TrokosException {
 		AuthMessage msg = new AuthMessage();
 		msg.setUserId(userId);
-		return (AuthMessage) sendRequest(msg); 
+		return (AuthMessage) sendRequest(msg);
 	}
 
 	private PrivateKey getPrivateKey() throws TrokosException {
 		try {
-			return (PrivateKey) kstore.getKey(userId, System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
+			return (PrivateKey) kstore.getKey(userId,
+					System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
 		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e) {
 			throw new TrokosException("Error in getting private key");
 		}
@@ -136,12 +136,12 @@ public class Client implements AutoCloseable {
 			throw new TrokosException("Error getting public certificate");
 		}
 	}
-	
+
 	private ResponseMessage signTransaction(ResponseMessage rsp) throws TrokosException {
 		Transaction t = rsp.getTransaction();
-		
+
 		PrivateKey priv = getPrivateKey();
-		
+
 		RequestMessage msg;
 		try {
 			Signature signature = Signature.getInstance("MD5withRSA");
@@ -152,7 +152,7 @@ public class Client implements AutoCloseable {
 		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
 			throw new TrokosException("Was not able to sign the transaction");
 		}
-		
+
 		return (ResponseMessage) sendRequest(msg);
 	}
 

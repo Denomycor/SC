@@ -10,11 +10,11 @@ public abstract class Message implements Serializable {
 		REQUEST, RESPONSE, USERAUTH, TRANSACTION
 	}
 
-	public Message(MessageType type){
+	public Message(MessageType type) {
 		this.type = type;
 	}
 
-	public MessageType getMessageType(){
+	public MessageType getMessageType() {
 		return type;
 	}
 

@@ -2,9 +2,8 @@ package network;
 
 import java.security.cert.Certificate;
 
-public class AuthMessage extends Message{
-    
-	
+public class AuthMessage extends Message {
+
 	private static final long serialVersionUID = -6354530460404215477L;
 	private boolean flag;
 	private String nonce;
@@ -12,9 +11,9 @@ public class AuthMessage extends Message{
 	private Certificate certificate;
 	private String userId;
 
-    public AuthMessage(){
-        super(Message.MessageType.USERAUTH);
-    }
+	public AuthMessage() {
+		super(Message.MessageType.USERAUTH);
+	}
 
 	public boolean isFlag() {
 		return flag;
