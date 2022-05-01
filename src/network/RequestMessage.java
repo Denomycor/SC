@@ -1,7 +1,5 @@
 package network;
 
-import model.Transaction;
-
 public class RequestMessage extends Message {
 
 	/**
