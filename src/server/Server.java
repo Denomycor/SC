@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -23,6 +25,8 @@ public class Server implements AutoCloseable {
 	private static final String GROUPS_FN = "groups.txt";
 	private static final String GROUPPAY_FN = "grouppay.txt";
 	private static final String PAY_REQ_FN = "pr.txt";
+	private static final String CYPH_PARAM = "cyph.param";
+	private static final byte[] salt = "verysaltysalt".getBytes();
 	
 	private ServerConnection serverConnection;
 	private ConcurrentHashMap<String, User> users;
@@ -41,9 +45,13 @@ public class Server implements AutoCloseable {
 			e.printStackTrace();
 			throw new TrokosException("cannot start server");
 		}
-		loadUsers();
-		loadGroups();
-		loadPaymentRequests(loadGroupPayments());
+		
+		if(Files.exists(Paths.get(USERS_FN))) {
+			loadUsers();
+			loadGroups();
+			loadPaymentRequests(loadGroupPayments());
+		}
+		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run( ) {
@@ -224,7 +232,6 @@ public class Server implements AutoCloseable {
 	}
 	
 	
-
 	@Override
 	public void close() throws Exception {
 		serverConnection.close();

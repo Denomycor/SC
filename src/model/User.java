@@ -12,6 +12,7 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ public class User {
 		this.keyFile = keyFile;
 		requestedPayments = new HashMap<>();
 		this.balance = 1000;
+		groups = new ArrayList<>();
 	}
 
 	public User(String userId, String keyFile, Certificate cert){
