@@ -2,11 +2,13 @@ package client;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -142,9 +144,18 @@ public class Client implements AutoCloseable {
 	private ResponseMessage signTransaction(ResponseMessage rsp) throws TrokosException {
 		Transaction t = rsp.getTransaction();
 		
-		byte[] signature = null;
+		PrivateKey priv = getPrivateKey();
 		
-		RequestMessage msg = new RequestMessage(RequestTypes.SIGNATURE, signature);
+		RequestMessage msg;
+		try {
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initSign(priv);
+			signature.update(t.getBytes());
+			byte[] sign = signature.sign();
+			msg = new RequestMessage(RequestTypes.SIGNATURE, sign);
+		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+			throw new TrokosException("Was not able to sign the transaction");
+		}
 		
 		return (ResponseMessage) sendRequest(msg);
 	}
