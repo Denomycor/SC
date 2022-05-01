@@ -191,8 +191,7 @@ public class ServerThread extends Thread {
 		User target = users.get(userId);
 		if (amount > logged.getBalance()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
-		}
-		if (target == null) {
+		} else if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
 
@@ -234,8 +233,7 @@ public class ServerThread extends Thread {
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
 		if (pr == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Payment Request not found");
-		}
-		if (pr.getAmount() > logged.getBalance()) {
+		} else if (pr.getAmount() > logged.getBalance()) {
 			return new ResponseMessage(ResponseStatus.ERROR, "You dont have enough money go work");
 		}
 
@@ -261,16 +259,16 @@ public class ServerThread extends Thread {
 		return new ResponseMessage(ResponseStatus.OB_QR, qrcode);
 	}
 
-	private ResponseMessage confirmQrcode(String reqId) throws TrokosException {
-		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
+	private ResponseMessage confirmQrcode(String qrCode) throws TrokosException {
+		PaymentRequest pr = qrPayments.get(qrCode);
 		if (pr == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Qrcode not found");
 		}
-		ResponseMessage ret = makePayment(pr.getRequested().getId(), pr.getAmount());
-		if (ret.getStatus() == ResponseStatus.OK) {
-			logged.removePayRequest(pr);
+		qrPayments.remove(qrCode);
+		if(logged.getBalance() < pr.getAmount()) {
+			return new ResponseMessage(ResponseStatus.ERROR, "Not enough balance");
 		}
-		return ret;
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
 	}
 
 	private ResponseMessage createGroup(String groupID) {
