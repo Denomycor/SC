@@ -6,11 +6,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 import exceptions.TrokosException;
 import model.Group;
@@ -27,20 +38,22 @@ public class Server implements AutoCloseable {
 	private static final String GROUPPAY_FN = "grouppay.txt";
 	private static final String PAY_REQ_FN = "pr.txt";
 	private static final String CYPH_PARAM = "cyph.param";
-	private static final byte[] salt = "verysaltysalt".getBytes();
+	private static final byte[] SALT = "verysaltysalt".getBytes();
 
 	private ServerConnection serverConnection;
 	private ConcurrentHashMap<String, User> users;
 	private ConcurrentHashMap<String, Group> groups;
 	private TransactionLog transactionLog;
-	private String cypherPassword;
+	private SecretKey key;
+	private Cipher encrypt;
+	private Cipher decrypt;
 
 	private static AtomicLong idCounter = new AtomicLong();
 
 	public Server(int port, String cypherPassword) throws TrokosException {
 		users = new ConcurrentHashMap<>();
 		groups = new ConcurrentHashMap<>();
-		this.cypherPassword = cypherPassword;
+		initCiphers(key, encrypt, decrypt, cypherPassword);
 		try {
 			serverConnection = new ServerConnection(port);
 		} catch (IOException e) {
@@ -69,6 +82,7 @@ public class Server implements AutoCloseable {
 		});
 	}
 
+
 	public void mainLoop() {
 		while (true) {
 			try {
@@ -82,9 +96,6 @@ public class Server implements AutoCloseable {
 		}
 	}
 
-	public void addUser(User user) {
-		users.put(user.getId(), user);
-	}
 
 	private void loadUsers() throws TrokosException {
 		File file = new File(USERS_FN);
@@ -231,6 +242,36 @@ public class Server implements AutoCloseable {
 			writer.write(sb.toString());
 		} catch (IOException e) {
 			System.out.println("Failed saving payment requests");
+		}
+	}
+	
+	private void initCiphers(SecretKey key, Cipher encrypt, Cipher decrypt, String password) throws TrokosException{
+		try {
+			PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), SALT, 20); 
+			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+			this.key = kf.generateSecret(keySpec);
+			
+			encrypt = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+			decrypt = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+			AlgorithmParameters p = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
+			byte[] params;
+			
+			if(Files.exists(Paths.get(CYPH_PARAM))) {
+				params = Files.readAllBytes(Paths.get(CYPH_PARAM));
+				p.init(params);
+				encrypt.init(Cipher.ENCRYPT_MODE, key, p);
+			} else {
+				encrypt.init(Cipher.ENCRYPT_MODE, key);
+				params = encrypt.getParameters().getEncoded();
+				//TODO Write to file
+			}
+			
+			p.init(params);
+			decrypt.init(Cipher.DECRYPT_MODE, key, p);
+
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | IOException | InvalidKeyException 
+				| InvalidAlgorithmParameterException e) {
+			throw new TrokosException("Failed initializing ciphers");
 		}
 	}
 
