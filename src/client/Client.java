@@ -96,9 +96,6 @@ public class Client implements AutoCloseable {
 			signature.initSign(priv);
 			signature.update(msg.getNonce().getBytes());
 			
-
-			System.out.println("2nd phase"); //TODO erase me
-
 			if(msg.isFlag()){
 				//User exists
 				msg.setSignedObject(signature.sign());
@@ -111,7 +108,6 @@ public class Client implements AutoCloseable {
 
 			}
 
-			System.out.println("3rd phase"); //TODO erase me
 			msg = (AuthMessage) sendRequest(msg);
 			return msg.isFlag();
 		}catch(Exception e){
