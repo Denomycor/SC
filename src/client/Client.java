@@ -56,9 +56,12 @@ public class Client implements AutoCloseable {
 		ResponseMessage rsp = (ResponseMessage) sendRequest(requested);
 		if (rsp.getStatus() == ResponseStatus.TRANSACTION_REQ) {
 			rsp = signTransaction(rsp);
+		} else if (rsp.getStatus() == ResponseStatus.OB_QR) {
+			generateQrCode(rsp.getBody());
 		}
 		System.out.println(rsp.getBody());
 	}
+
 
 	private RequestMessage userInteraction() throws TrokosException {
 		System.out.println("Insert commands");
@@ -84,6 +87,19 @@ public class Client implements AutoCloseable {
 		} catch (Exception e) {
 			throw new TrokosException("Failed receiving a message");
 		}
+	}
+	
+	private void generateQrCode(String body) throws TrokosException{
+		//String qrPath = "rsc/qrCodes/";
+		//new File(qrPath).mkdir();
+		//qrPath += body+".png";
+		
+		//try {
+			//BitMatrix matrix = new QRCodeWriter().encode(body, BarcodeFormat.QR_CODE, 100, 100);
+			//MatrixToImageWriter.writeToPath(matrix, "PNG", Paths.get(qrPath));
+		//} catch (WriterException | IOException e) {
+			//throw new TrokosException("Error generating QRCode");
+		//}
 	}
 
 	private boolean checkAuthentication(String userId) {

@@ -10,8 +10,7 @@ public class PaymentRequest {
 	private boolean paid;
 	private boolean qrcode;
 
-	public PaymentRequest(String id, String requesterId, User requested, double amount, boolean qrcode,
-			String groupPayId) {
+	public PaymentRequest(String id, String requesterId, User requested, double amount, String groupPayId) {
 		this.id = id;
 		this.requesterId = requesterId;
 		this.requested = requested;
@@ -23,10 +22,6 @@ public class PaymentRequest {
 
 	public boolean isPaid() {
 		return paid;
-	}
-
-	public boolean isQRcode() {
-		return qrcode;
 	}
 
 	public boolean isGroup() {
