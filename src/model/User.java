@@ -1,5 +1,7 @@
 package model;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,16 +38,13 @@ public class User {
 	public User(String userId, String keyFile, Certificate cert) {
 		this(userId, keyFile);
 
-		try {
-			FileOutputStream fos = new FileOutputStream(new File(keyFile));
+		try(FileOutputStream fos = new FileOutputStream(new File(keyFile));) {
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			oos.writeObject(cert.getEncoded());
-			fos.close();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-
 	}
 
 	public void deposit(double amount) {
@@ -68,9 +67,8 @@ public class User {
 
 	public PublicKey getKey() throws TrokosException {
 		Certificate certificate = null;
-
-		try (FileInputStream fis = new FileInputStream(new File("rsc/maybe/cert/" + keyFile))) {
-			CertificateFactory cf = CertificateFactory.getInstance("X509");
+		try (FileInputStream fis = new FileInputStream(new File("client/"+getId()+".cer"))) {
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
 			certificate = cf.generateCertificate(fis);
 		} catch (IOException | CertificateException e) {
 			e.printStackTrace();

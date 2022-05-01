@@ -1,1 +1,1 @@
-12345 projeto rsc/keystore.server password123
+12345 projeto server/keystore.server password123

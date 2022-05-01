@@ -1,6 +1,10 @@
 package network;
 
+import java.io.ByteArrayInputStream;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 
 public class AuthMessage extends Message {
 
@@ -8,7 +12,7 @@ public class AuthMessage extends Message {
 	private boolean flag;
 	private String nonce;
 	private byte[] signedObject;
-	private Certificate certificate;
+	private byte[] certificate;
 	private String userId;
 
 	public AuthMessage() {
@@ -47,12 +51,13 @@ public class AuthMessage extends Message {
 		this.userId = userId;
 	}
 
-	public Certificate getCertificate() {
-		return certificate;
+	public Certificate getCertificate() throws CertificateException {
+
+		return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(certificate));
 	}
 
-	public void setCertificate(Certificate certificate) {
-		this.certificate = certificate;
+	public void setCertificate(Certificate certificate) throws CertificateEncodingException {
+		this.certificate = certificate.getEncoded();
 	}
 
 }

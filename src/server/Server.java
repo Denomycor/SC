@@ -28,6 +28,7 @@ public class Server implements AutoCloseable {
 	private static final String PAY_REQ_FN = "pr.txt";
 	private static final String CYPH_PARAM = "cyph.param";
 	private static final byte[] salt = "verysaltysalt".getBytes();
+	public static final String SERVER_PATH = "server/";
 
 	private ServerConnection serverConnection;
 	private ConcurrentHashMap<String, User> users;

@@ -118,7 +118,7 @@ public class ServerThread extends Thread {
 
 			if (signature.verify(signed)) {
 				// Success, create user
-				logged = new User(userIdAuth, userIdAuth + ".cer", request.getCertificate());
+				logged = new User(userIdAuth, Server.SERVER_PATH + userIdAuth + ".cer", request.getCertificate());
 				users.put(logged.getId(), logged);
 
 				request.setFlag(true);
