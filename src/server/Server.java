@@ -1,8 +1,8 @@
 package server;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -33,10 +35,10 @@ import server.blockchain.TransactionLog;
 
 public class Server implements AutoCloseable {
 
-	private static final String USERS_FN = "users.txt";
-	private static final String GROUPS_FN = "groups.txt";
-	private static final String GROUPPAY_FN = "grouppay.txt";
-	private static final String PAY_REQ_FN = "pr.txt";
+	private static final String USERS_FN = "users.cif";
+	private static final String GROUPS_FN = "groups.cif";
+	private static final String GROUPPAY_FN = "grouppay.cif";
+	private static final String PAY_REQ_FN = "pr.cif";
 	private static final String CYPH_PARAM = "cyph.param";
 	private static final byte[] SALT = "verysaltysalt".getBytes();
 
@@ -44,7 +46,6 @@ public class Server implements AutoCloseable {
 	private ConcurrentHashMap<String, User> users;
 	private ConcurrentHashMap<String, Group> groups;
 	private TransactionLog transactionLog;
-	private SecretKey key;
 	private Cipher encrypt;
 	private Cipher decrypt;
 
@@ -99,20 +100,22 @@ public class Server implements AutoCloseable {
 
 	private void loadUsers() throws TrokosException {
 		File file = new File(USERS_FN);
-		try (Scanner sc = new Scanner(file)) {
+		try (FileInputStream fis = new FileInputStream(file); CipherInputStream cis = new CipherInputStream(fis, decrypt);
+				Scanner sc = new Scanner(new String(cis.readAllBytes()));) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
 				users.put(data[0], new User(data[0], data[1]));
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			throw new TrokosException("Could not load users");
 		}
 	}
 
 	private void loadGroups() throws TrokosException {
 		File file = new File(GROUPS_FN);
-		try (Scanner sc = new Scanner(file)) {
+		try (FileInputStream fis = new FileInputStream(file); CipherInputStream cis = new CipherInputStream(fis, decrypt);
+				Scanner sc = new Scanner(new String(cis.readAllBytes()));) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
@@ -124,7 +127,7 @@ public class Server implements AutoCloseable {
 					}
 				}
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			throw new TrokosException("Could not load groups");
 		}
 	}
@@ -132,7 +135,8 @@ public class Server implements AutoCloseable {
 	private Map<String, GroupPayment> loadGroupPayments() throws TrokosException {
 		Map<String, GroupPayment> gps = new HashMap<>();
 		File file = new File(GROUPPAY_FN);
-		try (Scanner sc = new Scanner(file)) {
+		try (FileInputStream fis = new FileInputStream(file); CipherInputStream cis = new CipherInputStream(fis, decrypt);
+				Scanner sc = new Scanner(new String(cis.readAllBytes()));) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
@@ -141,14 +145,15 @@ public class Server implements AutoCloseable {
 				gps.put(data[0], gp);
 			}
 			return gps;
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			throw new TrokosException("Could not load group payments");
 		}
 	}
 
 	private void loadPaymentRequests(Map<String, GroupPayment> gp) throws TrokosException {
 		File file = new File(PAY_REQ_FN);
-		try (Scanner sc = new Scanner(file)) {
+		try (FileInputStream fis = new FileInputStream(file); CipherInputStream cis = new CipherInputStream(fis, decrypt);
+				Scanner sc = new Scanner(new String(cis.readAllBytes()));) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
@@ -164,7 +169,7 @@ public class Server implements AutoCloseable {
 					gp.get(pr.getGroupPayId()).addPayment(pr);
 				}
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			throw new TrokosException("Could not load payment requests");
 		}
 	}
@@ -176,8 +181,9 @@ public class Server implements AutoCloseable {
 			sb.append(u.getId() + ":" + u.getKeyFile() + "\n");
 		}
 
-		try (FileWriter writer = new FileWriter(USERS_FN)) {
-			writer.write(sb.toString());
+		try (FileOutputStream fos = new FileOutputStream(new File(USERS_FN));
+				CipherOutputStream cos = new CipherOutputStream(fos, encrypt)) {
+			cos.write(sb.toString().getBytes());
 		} catch (IOException e) {
 			System.out.println("Failed saving users");
 		}
@@ -194,8 +200,9 @@ public class Server implements AutoCloseable {
 			sb.append("\n");
 		}
 
-		try (FileWriter writer = new FileWriter(GROUPS_FN)) {
-			writer.write(sb.toString());
+		try (FileOutputStream fos = new FileOutputStream(new File(GROUPS_FN));
+				CipherOutputStream cos = new CipherOutputStream(fos, encrypt)) {
+			cos.write(sb.toString().getBytes());
 		} catch (IOException e) {
 			System.out.println("Failed saving groups");
 		}
@@ -210,8 +217,9 @@ public class Server implements AutoCloseable {
 			}
 		}
 
-		try (FileWriter writer = new FileWriter(GROUPPAY_FN)) {
-			writer.write(sb.toString());
+		try (FileOutputStream fos = new FileOutputStream(new File(GROUPPAY_FN));
+				CipherOutputStream cos = new CipherOutputStream(fos, encrypt)) {
+			cos.write(sb.toString().getBytes());
 		} catch (IOException e) {
 			System.out.println("Failed saving group payments");
 		}
@@ -238,18 +246,20 @@ public class Server implements AutoCloseable {
 			}
 		}
 
-		try (FileWriter writer = new FileWriter(PAY_REQ_FN)) {
-			writer.write(sb.toString());
+		try (FileOutputStream fos = new FileOutputStream(new File(PAY_REQ_FN));
+				CipherOutputStream cos = new CipherOutputStream(fos, encrypt)) {
+			cos.write(sb.toString().getBytes());
 		} catch (IOException e) {
 			System.out.println("Failed saving payment requests");
 		}
 	}
 	
 	private void initCiphers(String password) throws TrokosException{
-		try {
+	
+		try (FileOutputStream fos = new FileOutputStream(new File(CYPH_PARAM));){
 			PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), SALT, 20); 
 			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-			key = kf.generateSecret(keySpec);
+			SecretKey key = kf.generateSecret(keySpec);
 			
 			encrypt = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			decrypt = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
@@ -263,7 +273,7 @@ public class Server implements AutoCloseable {
 			} else {
 				encrypt.init(Cipher.ENCRYPT_MODE, key);
 				params = encrypt.getParameters().getEncoded();
-				//TODO Write to file
+				fos.write(params);
 			}
 			
 			p.init(params);
@@ -272,7 +282,7 @@ public class Server implements AutoCloseable {
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | IOException | InvalidKeyException 
 				| InvalidAlgorithmParameterException e) {
 			throw new TrokosException(e.getMessage());
-		}
+		} 
 	}
 
 	@Override
