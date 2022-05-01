@@ -212,8 +212,9 @@ public class ServerThread extends Thread {
 		if (target == null) {
 			return new ResponseMessage(ResponseStatus.ERROR, "Cant find user with userId = " + userId);
 		}
-		target.addRequest(new PaymentRequest(Server.createID(), logged.getId(), target, ammount, qrcode, null));
-		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
+		String id = Server.createID();
+		target.addRequest(new PaymentRequest(id, logged.getId(), target, ammount, qrcode, null));
+		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful, request ID: "+id);
 	}
 
 	private ResponseMessage viewRequest() {
