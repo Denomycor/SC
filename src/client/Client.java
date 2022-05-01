@@ -1,9 +1,7 @@
 package client;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -16,12 +14,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Scanner;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 
 import exceptions.TrokosException;
 import model.Transaction;
@@ -98,19 +90,16 @@ public class Client implements AutoCloseable {
 	}
 	
 	private void generateQrCode(String body) throws TrokosException{
-		String qrPath = "rsc/qrCodes/";
-		new File(qrPath).mkdir();
-		qrPath += body+".png";
+		//String qrPath = "rsc/qrCodes/";
+		//new File(qrPath).mkdir();
+		//qrPath += body+".png";
 		
-		try {
-			BitMatrix matrix = new QRCodeWriter().encode(body, BarcodeFormat.QR_CODE, 100, 100);
-			MatrixToImageWriter.writeToPath(matrix, "PNG", Paths.get(qrPath));
-		} catch (WriterException | IOException e) {
-			throw new TrokosException("Error generating QRCode");
-		}
-		
-		
-		
+		//try {
+			//BitMatrix matrix = new QRCodeWriter().encode(body, BarcodeFormat.QR_CODE, 100, 100);
+			//MatrixToImageWriter.writeToPath(matrix, "PNG", Paths.get(qrPath));
+		//} catch (WriterException | IOException e) {
+			//throw new TrokosException("Error generating QRCode");
+		//}
 	}
 
 	private boolean checkAuthentication(String userId) {
