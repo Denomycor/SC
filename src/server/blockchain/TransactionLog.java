@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -48,6 +49,10 @@ public class TransactionLog {
 
 	private byte[] verifyBlockchain() throws TrokosException {
 		File folder = new File(Block.BLOCK_FOLDER);
+		if (!folder.exists()) {
+			folder.mkdir();
+		}
+			
 		File[] blocks = folder.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
