@@ -31,6 +31,8 @@ public class ServerThread extends Thread {
 	private User foundUser = null;
 	private Long nonce = 0L;
 	
+	private Boolean payRequestFirst = true; 
+	
 	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
 		this.users = users;
 		this.groups = groups;
@@ -151,7 +153,10 @@ public class ServerThread extends Thread {
 				conn.write(viewRequest());
 				break;
 			case PAY_REQUEST:
-				if(verifyPayRequest(request)){
+				if(payRequestFirst){
+					conn.write(helpPayRequest(request));
+				}else if(verifyPayRequest(request)){
+					System.out.println("paying"); //TODO erase me
 					conn.write(PayRequest(args[0]));
 				}else{
 					conn.write(new ResponseMessage(ResponseStatus.ERROR, "Wrong signature"));
@@ -342,16 +347,13 @@ public class ServerThread extends Thread {
 
 	private Boolean verifyPayRequest(RequestMessage request) throws Exception{
 		String reqId = request.getArgs()[0];
-
 		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
-		String[] toCheck = {pr.getAmount().toString(), pr.getRequested().getId()}; //value, userId
-
-		System.out.println(toCheck[0]); //TODO erase me
-		System.out.println(toCheck[1]); //TODO erase me
-
+		
+		String s = pr.getAmount().toString()+":"+pr.getRequesterId();
 		Signature signature = Signature.getInstance("MD5withRSA");
-		byte[] original = Helper.StringArrayToBytes(toCheck);
+		byte[] original = s.getBytes();
 
+		System.out.println(s); //TODO erase me
 		System.out.println(original); //TODO erase me
 
 		byte[] signed = request.getSignature();
@@ -360,6 +362,26 @@ public class ServerThread extends Thread {
 		signature.initVerify(key);
 		signature.update(original);
 
+		payRequestFirst = true;
+
+		System.out.println("teste"); //TODO erase me
 		return signature.verify(signed);
+	}
+
+	ResponseMessage helpPayRequest(RequestMessage request){
+		String reqId = request.getArgs()[0];
+		PaymentRequest pr = logged.getRequestedPaymentById(reqId);
+		
+		String s = pr.getAmount().toString()+":"+pr.getRequesterId();
+
+		byte[] original = s.getBytes();
+
+		System.out.println(s); //TODO erase me
+		System.out.println(original); //TODO erase me
+		System.out.println("........");  //TODO erase me
+
+		payRequestFirst = false;
+
+		return new ResponseMessage(ResponseStatus.OK, s);	 
 	}
 }

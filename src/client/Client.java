@@ -138,6 +138,7 @@ public class Client implements AutoCloseable {
 
 	private void parseRequest(RequestMessage request) throws TrokosException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException{
 		if(request.getType().equals(RequestTypes.MAKE_PAYMENT)){	
+			
 			byte[] data = Helper.StringArrayToBytes(request.getArgs());
 
 			PrivateKey priv = getPrivateKey();
@@ -147,15 +148,12 @@ public class Client implements AutoCloseable {
 			request.setSignature(signature.sign());
 
 		}else if(request.getType().equals(RequestTypes.PAY_REQUEST)){
-			String[] args = {request.getArgs()[0]}; //reqId
-			String[] toSign = {request.getArgs()[1], request.getArgs()[2]}; //value, userId
-			request.setArgs(args);
-
-			System.out.println(toSign[0]); //TODO erase me
-			System.out.println(toSign[1]); //TODO erase me
 			
-			byte[] data = Helper.StringArrayToBytes(toSign);
+			ResponseMessage resp = (ResponseMessage) sendRequest(request); //send request with only reqId
+		
+			byte[] data = resp.getBody().getBytes();
 
+			System.out.println(resp.getBody()); //TODO erase me
 			System.out.println(data); //TODO erase me
 
 			PrivateKey priv = getPrivateKey();

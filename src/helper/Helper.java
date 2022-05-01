@@ -13,4 +13,16 @@ public class Helper {
         //No need to close
         return baos.toByteArray();
     }
+
+    public static void printArray(String[] arr){
+        for(String s : arr){
+           System.out.println(s);
+        }
+    }
+
+    public static void printBytes(String[] arr){
+        for(String s : arr){
+           System.out.println(s.getBytes());
+        }
+    }
 }
