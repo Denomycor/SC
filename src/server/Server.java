@@ -53,7 +53,7 @@ public class Server implements AutoCloseable {
 	public Server(int port, String cypherPassword) throws TrokosException {
 		users = new ConcurrentHashMap<>();
 		groups = new ConcurrentHashMap<>();
-		initCiphers(key, encrypt, decrypt, cypherPassword);
+		initCiphers(cypherPassword);
 		try {
 			serverConnection = new ServerConnection(port);
 		} catch (IOException e) {
@@ -245,11 +245,11 @@ public class Server implements AutoCloseable {
 		}
 	}
 	
-	private void initCiphers(SecretKey key, Cipher encrypt, Cipher decrypt, String password) throws TrokosException{
+	private void initCiphers(String password) throws TrokosException{
 		try {
 			PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), SALT, 20); 
 			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-			this.key = kf.generateSecret(keySpec);
+			key = kf.generateSecret(keySpec);
 			
 			encrypt = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			decrypt = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
@@ -271,7 +271,7 @@ public class Server implements AutoCloseable {
 
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | IOException | InvalidKeyException 
 				| InvalidAlgorithmParameterException e) {
-			throw new TrokosException("Failed initializing ciphers");
+			throw new TrokosException(e.getMessage());
 		}
 	}
 
