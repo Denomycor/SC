@@ -44,7 +44,7 @@ public class TransactionLog {
 		return singleton;
 	}
 	
-	public synchronized void addTransaction(Transaction transaction) {
+	public synchronized void addTransaction(Transaction transaction) throws TrokosException {
 		block.add(transaction);
 		if (block.isFull()) {
 			byte[] blockHash = block.commit();
