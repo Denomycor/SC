@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import exceptions.TrokosException;
-import model.Transaction;
+import model.TransactionDto;
 import network.AuthMessage;
 import network.Message;
 import network.RequestMessage;
@@ -138,7 +138,7 @@ public class Client implements AutoCloseable {
 	}
 
 	private ResponseMessage signTransaction(ResponseMessage rsp) throws TrokosException {
-		Transaction t = rsp.getTransaction();
+		TransactionDto t = rsp.getTransaction();
 
 		PrivateKey priv = getPrivateKey();
 
@@ -146,7 +146,7 @@ public class Client implements AutoCloseable {
 		try {
 			Signature signature = Signature.getInstance("MD5withRSA");
 			signature.initSign(priv);
-			signature.update(Transaction.getBytes(t));
+			signature.update(TransactionDto.getBytes(t));
 			byte[] sign = signature.sign();
 			msg = new RequestMessage(RequestTypes.SIGNATURE, sign);
 		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {

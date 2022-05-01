@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,7 @@ import model.GroupPayment;
 import model.PaymentRequest;
 import model.User;
 import network.Connection;
+import server.blockchain.Transaction;
 import server.blockchain.TransactionLog;
 
 public class Server implements AutoCloseable {
@@ -54,6 +56,9 @@ public class Server implements AutoCloseable {
 			loadGroups();
 			loadPaymentRequests(loadGroupPayments());
 		}
+		
+		applyTransactions(transactionLog.getPreviousTransactions());
+		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -231,6 +236,15 @@ public class Server implements AutoCloseable {
 			writer.write(sb.toString());
 		} catch (IOException e) {
 			System.out.println("Failed saving payment requests");
+		}
+	}
+	
+	private void applyTransactions(List<Transaction> transactions) {
+		for (Transaction t : transactions) {
+			User f = users.get(t.getFromId());
+			User d = users.get(t.getDestId());
+			f.withdraw(t.getAmount());
+			d.deposit(t.getAmount());
 		}
 	}
 

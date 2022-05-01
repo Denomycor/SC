@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
@@ -16,16 +17,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import exceptions.TrokosException;
-import model.Transaction;
 
-public class Block {
+public class Block implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2041369444897930254L;
+	
 	protected static final String BLOCK_NAME_START = "block_";
 	protected static final String BLOCK_NAME_EXT = ".blk";
 	protected static final String BLOCK_NAME_REGEX = "^" + BLOCK_NAME_START + "([0-9]+)" + BLOCK_NAME_EXT + "$";
 	protected static final String BLOCK_FOLDER = "./blockchain/";
+	
 	private static int blockSize;
 	private static MessageDigest md;
+	
 	private long id;
 	private byte[] lastHash;
 	private List<Transaction> content = new ArrayList<Transaction>();
@@ -46,6 +53,30 @@ public class Block {
 
 	public byte[] commit() throws TrokosException {
 
+		signature = generateSignature();
+
+		byte[] finalData = null;
+		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+			oos.writeObject(this);
+			oos.flush();
+			finalData = bos.toByteArray();
+		} catch (IOException e) {
+			throw new TrokosException("Failed serializing Block");
+		}
+
+		try (FileOutputStream f = new FileOutputStream(
+				new File(BLOCK_FOLDER + BLOCK_NAME_START + id + BLOCK_NAME_EXT))) {
+			f.write(finalData);
+		} catch (IOException e) {
+			throw new TrokosException("Failed writing Block to file");
+		}
+
+		return generateHash(finalData);
+	}
+	
+	public byte[] generateSignature() throws TrokosException {
+		
 		byte[] toSign = null;
 
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -72,33 +103,14 @@ public class Block {
 			signer.initSign(priv);
 			signer.update(toSign);
 
-			signature = signer.sign();
+			return signer.sign();
+			
 		} catch (Exception e) {
 			throw new TrokosException("Error signing the object");
 		}
-
-		byte[] finalData = null;
-		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-			oos.write(toSign);
-			oos.write(this.signature);
-			oos.flush();
-			finalData = bos.toByteArray();
-		} catch (IOException e) {
-			throw new TrokosException("Failed serializing Block");
-		}
-
-		try (FileOutputStream f = new FileOutputStream(
-				new File(BLOCK_FOLDER + BLOCK_NAME_START + id + BLOCK_NAME_EXT))) {
-			f.write(finalData);
-		} catch (IOException e) {
-			throw new TrokosException("Failed writing Block to file");
-		}
-
-		return getHash(finalData);
 	}
 
-	public byte[] getHash() throws TrokosException {
+	public byte[] generateHash() throws TrokosException {
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				ObjectOutputStream oos = new ObjectOutputStream(bos)) {
 			oos.write(lastHash);
@@ -113,7 +125,7 @@ public class Block {
 		}
 	}
 
-	public byte[] getHash(byte[] data) throws TrokosException {
+	public byte[] generateHash(byte[] data) throws TrokosException {
 		return md.digest(data);
 	}
 
@@ -123,6 +135,20 @@ public class Block {
 		matcher.find();
 		return Long.parseLong(matcher.group(1));
 	}
+	
+	// Getters
+	public byte[] getLastHash() {
+		return lastHash;
+	}
+
+	public List<Transaction> getContent() {
+		return content;
+	}
+
+	public byte[] getSignature() {
+		return signature;
+	}
+	
 
 	// Setters
 	public static void setBlockSize(int blockSize) {

@@ -1,25 +1,32 @@
 package server.blockchain;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import exceptions.TrokosException;
-import model.Transaction;
 
 public class TransactionLog {
 
 	private static final String ALGORITHM = "SHA-256";
+	private static final int BLOCK_SIZE = 5;
 
 	private static AtomicLong blockCounter;
+	
+	List<Transaction> previousTransactions;
 	private Block block;
+	
 
 	public TransactionLog() throws TrokosException {
-		Block.setBlockSize(5);
+		Block.setBlockSize(BLOCK_SIZE);
 		try {
 			Block.setMd(MessageDigest.getInstance(ALGORITHM));
 		} catch (NoSuchAlgorithmException e) {
@@ -39,7 +46,7 @@ public class TransactionLog {
 		}
 	}
 
-	public static byte[] verifyBlockchain() throws TrokosException {
+	private byte[] verifyBlockchain() throws TrokosException {
 		File folder = new File(Block.BLOCK_FOLDER);
 		File[] blocks = folder.listFiles(new FilenameFilter() {
 			@Override
@@ -51,15 +58,33 @@ public class TransactionLog {
 		blockCounter = new AtomicLong(blocks.length + 1);
 
 		List<File> sortedblocks = Arrays.asList(blocks);
-		sortedblocks.sort(
-				(b1, b2) -> Block.getIdFromFileName(b1.getName()).compareTo(Block.getIdFromFileName(b2.getName())));
+		sortedblocks.sort((b1, b2) -> Block.getIdFromFileName(b1.getName()).compareTo(Block.getIdFromFileName(b2.getName())));
 
 		byte[] lastHash = new byte[32];
+		
+		previousTransactions = new ArrayList<>(BLOCK_SIZE * sortedblocks.size());
+		
 		for (File b : sortedblocks) {
-			// TODO: verify hash and signature update lastHash
-			// TODO: throw exception if fails to validate
+			try (ObjectInputStream oi = new ObjectInputStream(new FileInputStream(b))) {
+				Block block = (Block) oi.readObject();
+				if (!Arrays.equals(block.getLastHash(), lastHash)) {
+					throw new TrokosException("Blocks are corrupted");
+				}
+				lastHash = block.generateHash();
+
+				// TODO: verify signature
+				
+				previousTransactions.addAll(block.getContent());
+				
+			} catch (IOException | ClassNotFoundException e) {
+				throw new TrokosException("Error loading blockchain");
+			} 
 		}
 
 		return lastHash;
+	}
+
+	public List<Transaction> getPreviousTransactions() {
+		return previousTransactions;
 	}
 }

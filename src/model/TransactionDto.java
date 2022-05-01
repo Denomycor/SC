@@ -6,28 +6,29 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import exceptions.TrokosException;
+import server.blockchain.Transaction;
 
-public class Transaction implements Serializable {
+public class TransactionDto implements Serializable {
 
 	private static final long serialVersionUID = -220512868026077576L;
 
 	private String destId;
-	private double ammount;
+	private double amount;
 
-	public Transaction(String destId, double ammount) {
-		this.destId = destId;
-		this.ammount = ammount;
+	public TransactionDto(Transaction transaction) {
+		destId = transaction.getDestId();
+		amount = transaction.getAmount();
 	}
 
 	public String getDestId() {
 		return destId;
 	}
 
-	public double getAmmount() {
-		return ammount;
+	public double getAmount() {
+		return amount;
 	}
 
-	public static byte[] getBytes(Transaction t) throws TrokosException {
+	public static byte[] getBytes(TransactionDto t) throws TrokosException {
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				ObjectOutputStream oos = new ObjectOutputStream(bos)) {
 			oos.writeObject(t);

@@ -1,13 +1,13 @@
 package network;
 
-import model.Transaction;
+import model.TransactionDto;
 
 public class ResponseMessage extends Message {
 
 	private static final long serialVersionUID = -8831947998289447696L;
 	private ResponseStatus status;
 	private String body;
-	private Transaction transaction;
+	private TransactionDto transaction;
 
 	public ResponseMessage(ResponseStatus status) {
 		super(Message.MessageType.RESPONSE);
@@ -20,7 +20,7 @@ public class ResponseMessage extends Message {
 		this.status = status;
 	}
 
-	public ResponseMessage(ResponseStatus status, Transaction transaction) {
+	public ResponseMessage(ResponseStatus status, TransactionDto transaction) {
 		super(Message.MessageType.RESPONSE);
 		this.status = status;
 		this.transaction = transaction;
@@ -34,7 +34,7 @@ public class ResponseMessage extends Message {
 		return body;
 	}
 
-	public Transaction getTransaction() {
+	public TransactionDto getTransaction() {
 		return transaction;
 	}
 }
