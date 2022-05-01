@@ -14,7 +14,8 @@ public enum RequestTypes {
 	DIVIDE_PAYMENT,
 	STATUS_PAYMENT,
 	HISTORY,
-	LOGIN;
+	LOGIN,
+	SIGNATURE;
 	
 	public static RequestTypes getRequestType(String s) {
 		switch (s) {

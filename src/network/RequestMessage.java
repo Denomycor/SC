@@ -11,7 +11,6 @@ public class RequestMessage extends Message {
 	private RequestTypes type;
 	private String[] args;
 	
-	private Transaction transaction;
 	private byte[] signature;
 	
 	public RequestMessage(RequestTypes type, String args[]) {
@@ -20,10 +19,9 @@ public class RequestMessage extends Message {
 		this.args = args;
 	}
 	
-	public RequestMessage(RequestTypes type, Transaction transaction, byte[] signature) {
+	public RequestMessage(RequestTypes type, byte[] signature) {
 		super(MessageType.REQUEST);
 		this.type = type;
-		this.transaction = transaction;
 		this.signature = signature;
 	}
 
@@ -33,10 +31,6 @@ public class RequestMessage extends Message {
 
 	public String[] getArgs() {
 		return args;
-	}
-
-	public Transaction getTransaction() {
-		return transaction;
 	}
 
 	public byte[] getSignature() {

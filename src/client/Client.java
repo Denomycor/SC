@@ -20,6 +20,7 @@ import network.Message;
 import network.RequestMessage;
 import network.RequestTypes;
 import network.ResponseMessage;
+import network.ResponseStatus;
 
 public class Client implements AutoCloseable {
 
@@ -51,6 +52,9 @@ public class Client implements AutoCloseable {
 	public void processRequest() throws TrokosException {
 		RequestMessage requested = userInteraction();
 		ResponseMessage rsp = (ResponseMessage) sendRequest(requested);
+		if (rsp.getStatus() == ResponseStatus.TRANSACTION_REQ ) {
+			rsp = signTransaction(rsp);
+		}
 		System.out.println(rsp.getBody());
 	}
 
@@ -64,25 +68,7 @@ public class Client implements AutoCloseable {
 		}
 		String[] args = Arrays.copyOfRange(splitInput, 1, splitInput.length);
 		
-		Transaction t = null;
 		
-		//TODO: make the transaction
-		switch (type) {
-			case MAKE_PAYMENT:		
-				break;
-			case CONFIRM_QR_CODE:
-				break;
-			case PAY_REQUEST:
-				break;
-			default:
-				break;
-		}
-		
-		byte[] signature = null;
-		
-		if ( t != null) {
-			return new RequestMessage(type, t, signature);
-		}
 		return new RequestMessage(type, args);
 	}
 
@@ -139,8 +125,7 @@ public class Client implements AutoCloseable {
 
 	private PrivateKey getPrivateKey() throws TrokosException {
 		try {
-			return (PrivateKey) kstore.getKey(userId,
-					System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
+			return (PrivateKey) kstore.getKey(userId, System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
 		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e) {
 			throw new TrokosException("Error in getting private key");
 		}
@@ -152,6 +137,16 @@ public class Client implements AutoCloseable {
 		} catch (KeyStoreException e) {
 			throw new TrokosException("Error getting public certificate");
 		}
+	}
+	
+	private ResponseMessage signTransaction(ResponseMessage rsp) throws TrokosException {
+		Transaction t = rsp.getTransaction();
+		
+		byte[] signature = null;
+		
+		RequestMessage msg = new RequestMessage(RequestTypes.SIGNATURE, signature);
+		
+		return (ResponseMessage) sendRequest(msg);
 	}
 
 	@Override
