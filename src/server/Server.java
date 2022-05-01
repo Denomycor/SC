@@ -70,6 +70,8 @@ public class Server implements AutoCloseable {
 				commitGroupPayments();
 				System.out.println("Saving Payment Requests");
 				commitPayRequests();
+				System.out.println("terminating block chain");
+				transactionLog.terminate();
 			}
 		});
 	}

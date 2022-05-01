@@ -46,6 +46,10 @@ public class Block implements Serializable {
 	public boolean isFull() {
 		return content.size() == blockSize;
 	}
+	
+	public boolean hasAnyTransaction() {
+		return content.size() != 0;
+	}
 
 	public void add(Transaction transaction) {
 		content.add(transaction);
@@ -72,7 +76,7 @@ public class Block implements Serializable {
 			throw new TrokosException("Failed writing Block to file");
 		}
 
-		return generateHash(finalData);
+		return generateHash();
 	}
 	
 	public byte[] generateSignature() throws TrokosException {
@@ -119,7 +123,7 @@ public class Block implements Serializable {
 			oos.writeObject(content);
 			oos.write(signature);
 			oos.flush();
-			return bos.toByteArray();
+			return generateHash(bos.toByteArray());
 		} catch (IOException e) {
 			throw new TrokosException("Failed serializing Block");
 		}

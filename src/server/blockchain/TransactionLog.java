@@ -6,8 +6,12 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
+import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -72,12 +76,33 @@ public class TransactionLog {
 		for (File b : sortedblocks) {
 			try (ObjectInputStream oi = new ObjectInputStream(new FileInputStream(b))) {
 				Block block = (Block) oi.readObject();
+				
+				System.out.println(block.getLastHash().length + " ====> " + Arrays.toString(block.getLastHash()));
+				System.out.println(lastHash.length + " ====> " +  Arrays.toString(lastHash));
+				System.out.println();
+				
 				if (!Arrays.equals(block.getLastHash(), lastHash)) {
 					throw new TrokosException("Blocks are corrupted");
 				}
 				lastHash = block.generateHash();
 
 				// TODO: verify signature
+//				try {
+//					FileInputStream kfile = new FileInputStream(System.getProperty("javax.net.ssl.keyStore"));
+//					KeyStore kstore = KeyStore.getInstance("PKCS12");
+//					kstore.load(kfile, System.getProperty("javax.net.ssl.keyStorePassword").toCharArray());
+//					Certificate cert = kstore.getCertificate("myserver");
+//
+//					Signature signer = Signature.getInstance("MD5withRSA");
+//					signer.initVerify(cert);
+//					
+//					if (!signer.verify(block.getSignature())) {
+//						throw new TrokosException("");
+//					}
+//					
+//				} catch (Exception e) {
+//					throw new TrokosException("Error verifying the signature");
+//				}
 				
 				previousTransactions.addAll(block.getContent());
 				
@@ -91,5 +116,15 @@ public class TransactionLog {
 
 	public List<Transaction> getPreviousTransactions() {
 		return previousTransactions;
+	}
+	
+	public void terminate() {
+		try {
+			if (block.hasAnyTransaction()) {
+				block.commit();				
+			}
+		} catch (TrokosException e) {
+			System.out.println("Failure terminating");
+		}
 	}
 }
