@@ -71,11 +71,11 @@ public class User {
 	public PublicKey getKey() throws TrokosException {
 		Certificate certificate = null;
 		
-		try (FileInputStream fis = new FileInputStream(new File(keyFile)); ObjectInputStream ois = new ObjectInputStream(fis)) {
-			byte[] b = (byte[]) ois.readObject();
+		try (FileInputStream fis = new FileInputStream(new File("rsc/maybe/cert/" + keyFile))) {
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
-			certificate = cf.generateCertificate(new ByteArrayInputStream(b));
-		} catch (IOException | ClassNotFoundException | CertificateException e) {
+			certificate = cf.generateCertificate(fis);
+		} catch (IOException | CertificateException e) {
+			e.printStackTrace();
 			throw new TrokosException("Can not get user public key");
 		}
 		return certificate.getPublicKey();

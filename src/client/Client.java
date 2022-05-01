@@ -150,7 +150,7 @@ public class Client implements AutoCloseable {
 		try {
 			Signature signature = Signature.getInstance("MD5withRSA");
 			signature.initSign(priv);
-			signature.update(t.getBytes());
+			signature.update(Transaction.getBytes(t));
 			byte[] sign = signature.sign();
 			msg = new RequestMessage(RequestTypes.SIGNATURE, sign);
 		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {

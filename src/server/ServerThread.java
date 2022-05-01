@@ -21,6 +21,7 @@ import network.Message;
 import network.RequestMessage;
 import network.ResponseMessage;
 import network.ResponseStatus;
+import server.blockchain.TransactionLog;
 
 public class ServerThread extends Thread {
 	
@@ -28,15 +29,17 @@ public class ServerThread extends Thread {
 	private Map<String, User> users;
 	private Map<String, Group> groups;
 	private User logged = null;
+	private TransactionLog transactionLog;
 
 	private String userIdAuth = null;
 	private User foundUser = null;
 	private Long nonce = 0L;
 	
-	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups) {
+	public ServerThread(Connection conn, Map<String, User> users, Map<String, Group> groups, TransactionLog transactionLog) {
 		this.users = users;
 		this.groups = groups;
 		this.conn = conn;
+		this.transactionLog = transactionLog; 
 	}
 	
 	@Override
@@ -204,6 +207,8 @@ public class ServerThread extends Thread {
 			return new ResponseMessage(ResponseStatus.ERROR, "Signature did not verify. Transaction Aborted");
 		}
 		
+		transactionLog.addTransaction(t);
+		
 		logged.withdraw(amount);
 		target.deposit(amount);
 		return new ResponseMessage(ResponseStatus.OK, "Operation Sucessful");
@@ -336,7 +341,7 @@ public class ServerThread extends Thread {
 	}
 	
 	private boolean verifySignedTransaction(Transaction transaction) throws TrokosException {
-		ResponseMessage msg = new ResponseMessage(ResponseStatus.OK, transaction);
+		ResponseMessage msg = new ResponseMessage(ResponseStatus.TRANSACTION_REQ, transaction);
 		try {
 			conn.write(msg);
 		} catch (IOException e) {
@@ -356,7 +361,7 @@ public class ServerThread extends Thread {
 			
 			Signature signature = Signature.getInstance("MD5withRSA");
 			
-			byte[] data = transaction.getBytes();
+			byte[] data = Transaction.getBytes(transaction);
 			
 			PublicKey key = logged.getKey();
 			signature.initVerify(key);

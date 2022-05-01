@@ -1,7 +1,12 @@
 package model;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+
+import exceptions.TrokosException;
 
 public class Transaction implements Serializable {
 	
@@ -23,10 +28,13 @@ public class Transaction implements Serializable {
 		return ammount;
 	}
 	
-	public byte[] getBytes() {
-		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + Double.BYTES);
-		buffer.putLong(destId);
-		buffer.putDouble(ammount);
-		return buffer.array();
+	public static byte[] getBytes(Transaction t) throws TrokosException {
+		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+			oos.writeObject(t);
+			oos.flush();
+			return bos.toByteArray();
+		} catch (IOException e) {
+			throw new TrokosException("Failed getting bytes from transaction");
+		}		
 	}
 }

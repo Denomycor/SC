@@ -13,6 +13,7 @@ import model.Group;
 import model.PaymentRequest;
 import model.User;
 import network.Connection;
+import server.blockchain.TransactionLog;
 
 public class Server implements AutoCloseable {
 	
@@ -22,6 +23,7 @@ public class Server implements AutoCloseable {
 	private ServerConnection serverConnection;
 	private ConcurrentHashMap<String, User> users;
 	private ConcurrentHashMap<String, Group> groups;
+	private TransactionLog transactionLog;
 	private String cypherPassword;
 	
 	private static AtomicLong idCounter = new AtomicLong();
@@ -36,6 +38,8 @@ public class Server implements AutoCloseable {
 			e.printStackTrace();
 			throw new TrokosException("cannot start server");
 		}
+		transactionLog = new TransactionLog();
+		
 		loadUsers();
 		loadPaymentRequests();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -53,7 +57,7 @@ public class Server implements AutoCloseable {
 		while (true) {
 			try { 
 				Connection con = serverConnection.listen();
-				ServerThread st = new ServerThread(con, users, groups);
+				ServerThread st = new ServerThread(con, users, groups, transactionLog);
 				st.start();
 			}catch (TrokosException e) {
 				System.out.println("Server Error: " + e.getMessage());
