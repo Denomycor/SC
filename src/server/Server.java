@@ -4,12 +4,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import exceptions.TrokosException;
 import model.Group;
+import model.GroupPayment;
 import model.PaymentRequest;
 import model.User;
 import network.Connection;
@@ -18,7 +23,11 @@ import server.blockchain.TransactionLog;
 public class Server implements AutoCloseable {
 	
 	private static final String USERS_FN = "users.txt";
+	private static final String GROUPS_FN = "groups.txt";
+	private static final String GROUPPAY_FN = "grouppay.txt";
 	private static final String PAY_REQ_FN = "pr.txt";
+	private static final String CYPH_PARAM = "cyph.param";
+	private static final byte[] salt = "verysaltysalt".getBytes();
 	
 	private ServerConnection serverConnection;
 	private ConcurrentHashMap<String, User> users;
@@ -40,15 +49,22 @@ public class Server implements AutoCloseable {
 		}
 		transactionLog = new TransactionLog();
 		
-		loadUsers();
-		loadPaymentRequests();
+		if(Files.exists(Paths.get(USERS_FN))) {
+			loadUsers();
+			loadGroups();
+			loadPaymentRequests(loadGroupPayments());
+		}
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run( ) {
-				System.out.println("Saving Payment Requests");
-				commitPayRequests();
 				System.out.println("Saving Users");
 				commitUsers();
+				System.out.println("Saving Groups");
+				commitGroups();
+				System.out.println("Saving GroupPayments");
+				commitGroupPayments();
+				System.out.println("Saving Payment Requests");
+				commitPayRequests();
 			}
 		});
 	}
@@ -83,21 +99,110 @@ public class Server implements AutoCloseable {
 		}
 	}
 	
-	private void loadPaymentRequests( ) {
+	private void loadGroups() throws TrokosException {
+		File file = new File(GROUPS_FN);
+		try (Scanner sc = new Scanner(file)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String[] data = line.split(":");
+				Group g = new Group(data[0], users.get(data[1]));
+				groups.put(data[0], g);
+				if(data.length > 2) {
+					for(String s : data[2].split(",")) {
+						g.addMember(users.get(s));
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			throw new TrokosException("Could not load groups");
+		}
+	}
+	
+	private Map<String, GroupPayment> loadGroupPayments() throws TrokosException {
+		Map<String, GroupPayment> gps = new HashMap<>();
+		File file = new File(GROUPPAY_FN);
+		try (Scanner sc = new Scanner(file)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String[] data = line.split(":");
+				GroupPayment gp = new GroupPayment(data[0], data[1]);
+				groups.get(data[1]).addGroupPayment(gp);
+				gps.put(data[0], gp);
+			}
+			return gps;
+		} catch (FileNotFoundException e) {
+			throw new TrokosException("Could not load group payments");
+		}
+	}
+	
+	private void loadPaymentRequests(Map<String, GroupPayment> gp) throws TrokosException{
 		File file = new File(PAY_REQ_FN);
 		try (Scanner sc = new Scanner(file)) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String[] data = line.split(":");
-				
-				User source = users.get(data[0]);
-				User target = users.get(data[1]);
-				
-				String id = createID();
-				target.addRequest(new PaymentRequest(id, source, Double.parseDouble(data[2]), Boolean.parseBoolean(data[3]), null));
+				String groupPayId = data[5].trim().equals("null") ? null : data[5];
+				PaymentRequest pr = new PaymentRequest(data[0], data[1], users.get(data[2]), Double.parseDouble(data[3]), 
+						Boolean.parseBoolean(data[4]), groupPayId);
+				if(Boolean.parseBoolean(data[6])) {
+					pr.markAsPaid();
+				} else {
+					pr.getRequested().addRequest(pr);
+				}
+				if(pr.isGroup()) {
+					gp.get(pr.getGroupPayId()).addPayment(pr);
+				}
 			}
 		} catch (FileNotFoundException e) {
-			System.out.println("No payment requests found to load");
+			throw new TrokosException("Could not load payment requests");
+		}
+	}
+	
+	private void commitUsers() {
+		StringBuilder sb = new StringBuilder();
+		
+		for (User u : users.values()) {
+			sb.append(u.getId()+":"+u.getKeyFile()+"\n");
+		}
+		
+		try (FileWriter writer = new FileWriter(USERS_FN)) {
+			writer.write(sb.toString());
+		} catch (IOException e) {
+			System.out.println("Failed saving users");
+		}
+	}
+	
+	private void commitGroups() {
+		StringBuilder sb = new StringBuilder();
+		
+		for(Group g : groups.values()) {
+			sb.append(g.getId()+":"+ g.getOwnerId()+":");
+			for(User u : g.getMembers()) {
+				sb.append(u.getId()+",");
+			}
+			sb.append("\n");
+		}
+		
+		try (FileWriter writer = new FileWriter(GROUPS_FN)) {
+			writer.write(sb.toString());
+		} catch (IOException e) {
+			System.out.println("Failed saving groups");
+		}
+	}
+	
+	private void commitGroupPayments() {
+		StringBuilder sb = new StringBuilder();
+		
+		for(Group g : groups.values()) {
+			for(GroupPayment gp : g.getGroupPayments()) {
+				sb.append(gp.getId() +":"+ gp.getGroupId());
+			}
+		}
+		
+		try (FileWriter writer = new FileWriter(GROUPPAY_FN)) {
+			writer.write(sb.toString());
+		} catch (IOException e) {
+			System.out.println("Failed saving group payments");
 		}
 	}
 	
@@ -105,8 +210,19 @@ public class Server implements AutoCloseable {
 		StringBuilder sb = new StringBuilder();
 		
 		for (User u : users.values()) {
-			for( PaymentRequest pr: u.getRequestedPayments()) {
-				sb.append(pr.getRequested().getId() + ":" + u.getId() + ":" + pr.getAmount() + ":" + pr.isQRcode() + "\n");
+			for(PaymentRequest pr: u.getRequestedPayments()) {
+				if(!pr.isGroup()) {
+					sb.append(pr.getId()+":"+pr.getRequesterId()+":"+u.getId()+":"+pr.getAmount()+":"+pr.isQRcode()+
+							":"+"null"+":"+pr.isPaid()+"\n");
+				}
+			}
+		}
+		for (Group g : groups.values()) {
+			for(GroupPayment gp : g.getGroupPayments()) {
+				for(PaymentRequest pr: gp.getPayments()) {
+					sb.append(pr.getId()+":"+pr.getRequesterId()+":"+pr.getRequested().getId()+":"+pr.getAmount()+":"+pr.isQRcode()+
+							":"+ pr.getGroupPayId()+":"+pr.isPaid()+"\n");
+				}
 			}
 		}
 		 
@@ -114,20 +230,6 @@ public class Server implements AutoCloseable {
 			writer.write(sb.toString());
 		} catch (IOException e) {
 			System.out.println("Failed saving payment requests");
-		}
-	}
-	
-	private void commitUsers(){
-		StringBuilder sb = new StringBuilder();
-		
-		for (User u : users.values()) {
-			sb.append(u.getId()+":"+u.getKeyFile()+"\n");
-		}
-
-		try (FileWriter writer = new FileWriter(USERS_FN)) {
-			writer.write(sb.toString());
-		} catch (IOException e) {
-			System.out.println("Failed saving users");
 		}
 	}
 

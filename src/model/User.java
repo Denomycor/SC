@@ -1,17 +1,16 @@
 package model;
 
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +32,7 @@ public class User {
 		this.keyFile = keyFile;
 		requestedPayments = new HashMap<>();
 		this.balance = 1000;
+		groups = new ArrayList<>();
 	}
 
 	public User(String userId, String keyFile, Certificate cert){

@@ -3,18 +3,20 @@ package model;
 public class PaymentRequest {
 	
 	private final String id;
+	private final String requesterId;
+	private String groupPayId;
 	private final User requested;
-	private final double amount;
+	private final Double amount;
 	private boolean paid;
 	private boolean qrcode;
-	private GroupPayment group;
 	
-	public PaymentRequest( String id, User requested, double amount, boolean qrcode, GroupPayment group ) {
+	public PaymentRequest( String id, String requesterId, User requested, double amount, boolean qrcode, String groupPayId ) {
 		this.id = id;
+		this.requesterId = requesterId;
 		this.requested = requested;
 		this.amount = amount;
 		this.qrcode = qrcode;
-		this.group = group;
+		this.groupPayId = groupPayId;
 		paid = false;
 	}
 	
@@ -26,22 +28,32 @@ public class PaymentRequest {
 		return qrcode;
 	}
 	
+	public boolean isGroup() {
+		return groupPayId != null;
+	}
+	
 	public void markAsPaid( ) {
 		paid = true;
-		if(group != null) {
-			group.updatePayment(this);
-		}
 	}
 	
 	public String getId() {
 		return id;
 	}
 	
+	public String getRequesterId() {
+		return requesterId;
+	}
+	
 	public User getRequested( ) {
 		return requested;
 	}
 
-	public double getAmount() {
+	public Double getAmount() {
 		return amount;
 	}
+	
+	public String getGroupPayId() {
+		return groupPayId;
+	}
+	
 }
