@@ -14,10 +14,10 @@ import model.Transaction;
 public class TransactionLog {
 
 	private static final String ALGORITHM = "SHA-256";
-	
+
 	private static AtomicLong blockCounter;
 	private Block block;
-	
+
 	public TransactionLog() throws TrokosException {
 		Block.setBlockSize(5);
 		try {
@@ -25,20 +25,20 @@ public class TransactionLog {
 		} catch (NoSuchAlgorithmException e) {
 			throw new TrokosException("Specified Algorithm(" + ALGORITHM + ") was not found");
 		}
-		
+
 		byte[] lastHash = verifyBlockchain();
-		
+
 		block = new Block(blockCounter.getAndIncrement(), lastHash);
 	}
-	
+
 	public synchronized void addTransaction(Transaction transaction) throws TrokosException {
 		block.add(transaction);
 		if (block.isFull()) {
 			byte[] blockHash = block.commit();
-			block = new Block( blockCounter.getAndIncrement(), blockHash);
+			block = new Block(blockCounter.getAndIncrement(), blockHash);
 		}
 	}
-	
+
 	public static byte[] verifyBlockchain() throws TrokosException {
 		File folder = new File(Block.BLOCK_FOLDER);
 		File[] blocks = folder.listFiles(new FilenameFilter() {
@@ -47,18 +47,19 @@ public class TransactionLog {
 				return name.matches(Block.BLOCK_NAME_REGEX);
 			}
 		});
-		
+
 		blockCounter = new AtomicLong(blocks.length + 1);
-		
+
 		List<File> sortedblocks = Arrays.asList(blocks);
-		sortedblocks.sort( (b1, b2) -> Block.getIdFromFileName(b1.getName()).compareTo(Block.getIdFromFileName(b2.getName())));
-		
+		sortedblocks.sort(
+				(b1, b2) -> Block.getIdFromFileName(b1.getName()).compareTo(Block.getIdFromFileName(b2.getName())));
+
 		byte[] lastHash = new byte[32];
 		for (File b : sortedblocks) {
-			//TODO: verify hash and signature update lastHash
-			//TODO: throw exception if fails to validate
+			// TODO: verify hash and signature update lastHash
+			// TODO: throw exception if fails to validate
 		}
-		
+
 		return lastHash;
 	}
 }
